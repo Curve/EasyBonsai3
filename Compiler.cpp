@@ -80,9 +80,7 @@ bool BonsaiCompiler::compile()
 		}
 		return false;
 	}
-
-	srand(time(NULL));
-
+	
 	//c_Or();
 	//c_And();
 	c_Funcs();
@@ -134,7 +132,7 @@ void BonsaiCompiler::c_Allocs()
 		auto line = m_CurrentCode[i];
 		if (isAlloc(line, a, b, h))
 		{
-			auto strLine = std::to_string(rand() % 1000);
+			auto strLine = std::to_string(i);
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func =
@@ -164,7 +162,7 @@ void BonsaiCompiler::c_Allocs()
 		auto line = m_CurrentCode[i];
 		if (isZeroAlloc(line, a))
 		{
-			auto strLine = std::to_string(rand() % 1000);
+			auto strLine = std::to_string(i);
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func =
