@@ -132,25 +132,24 @@ void BonsaiCompiler::c_Allocs()
 		auto line = m_CurrentCode[i];
 		if (isAlloc(line, a, b, h))
 		{
-			auto strLine = std::to_string(i);
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func =
 			{
-				"start" + strLine + ": tst " + b,
-				"jmp bNotNull" + strLine,
-				"jmp bNull" + strLine,
-				"bNotNull" + strLine + ": inc " + h,
+				"start: tst " + b,
+				"jmp bNotNull",
+				"jmp bNull",
+				"bNotNull: inc " + h,
 				"inc " + a,
 				"dec " + b,
-				"jmp start" + strLine,
-				"bNull" + strLine + ": tst " + h,
-				"jmp restore" + strLine,
-				"jmp resetHelper" + strLine,
-				"restore" + strLine + ": dec " + h,
+				"jmp start",
+				"bNull: tst " + h,
+				"jmp restore",
+				"jmp resetHelper",
+				"restore: dec " + h,
 				"inc " + b,
-				"jmp bNull" + strLine,
-				"resetHelper" + strLine + ": [" + h + "=zero]",
+				"jmp bNull",
+				"resetHelper: [" + h + "=zero]",
 				"jmp " + std::to_string(i + 1)
 			};
 			m_CurrentCode += func;
@@ -162,15 +161,14 @@ void BonsaiCompiler::c_Allocs()
 		auto line = m_CurrentCode[i];
 		if (isZeroAlloc(line, a))
 		{
-			auto strLine = std::to_string(i);
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func =
 			{
 				"tst " + a,
-				"jmp notNull" + strLine,
+				"jmp notNull",
 				"jmp " + std::to_string(i + 1),
-				"notNull" + strLine + ": dec " + a,
+				"notNull: dec " + a,
 				"jmp " + std::to_string(allocAddy)
 			};
 			m_CurrentCode += func;
@@ -180,6 +178,8 @@ void BonsaiCompiler::c_Allocs()
 }
 void BonsaiCompiler::c_Funcs()
 {
+	m_FuncIndex.clear();
+
 	static auto isFunc = [&](string& line, string& name)
 	{
 		std::smatch res;
