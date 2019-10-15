@@ -116,6 +116,7 @@ jmp 0
 All it does is to clear the variables "0" and "1" (if one of them has a value greater than 0) and backups variable "1" in the variable "2", then if "0" and "1" are both equal to zero, it copies the value of "2" to "1".
 While this program only has 12 lines in EasyBonsai, it has 72 in Bonsai.
 <details closed>
+
 ```nasm
 jmp 12
 jmp 7
@@ -191,6 +192,7 @@ jmp 47
 dec 3
 jmp 68
 ```
+
 </details>
 
 
