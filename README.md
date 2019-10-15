@@ -48,7 +48,7 @@ lbl.main:
 goto lbl.main
 ```
 ## Mov
-Mov is used to copy the value of a variable to another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper value.
+Mov is used to copy the value of a variable to another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper variable (*Only if the program was ran without the -ah flag, which will automatically determine the address of the helper-variable*)
 ```nasm
 ; Variable named "1" will be asgined the value of variable named "2", "3" will be
 ; used as a buffer and is expected to be 0, after successfull allocation 
