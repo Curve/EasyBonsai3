@@ -23,6 +23,7 @@
 
 # Introduction
 When writing [Bonsai Code](https://bonsai.pinyto.de/assembler/) its often hard to structure the code, because Bonsai is missing things like labels, or instructions like mov, and, or, which further increases the codes size. EasyBonsai however adds those features! (See [Features](#features))
+Also other than its predecessor EasyBonsai2 has a web-implementation, which allows you to use this in the web too!
 # Dependencies
 - [rang](https://github.com/agauniyal/rang) [Terminal Colors]
 - [emscripten](https://emscripten.org/) [*Only for WebBonsai*] 
