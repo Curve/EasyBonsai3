@@ -101,7 +101,7 @@ Sometimes its easier to have jmps that jump to a relative address instead of a s
 To see how "powerful" (or rather how much simpler) EasyBonsai is I have this example program:
 ```nasm
 or 0, 1 ; if "0" or "1" > 0
-goto clearThem ; clear Them and backup "1" in "2"
+goto clearThem ; clear "0"&"1" and backup "1" in "2"
 goto end
 end:
 mov 1, 2 # 3 ; "0" and "1" were cleared, now move the backup from "2" into "1"
@@ -192,6 +192,8 @@ dec 3
 jmp 68
 ```
 </details>
+
+
 # TODO
 - [ ] Greater/Less than
 - [ ] Bonsai Interpreter
