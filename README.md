@@ -200,3 +200,4 @@ jmp 68
 - [ ] Greater/Less than
 - [ ] Bonsai Interpreter
 - [ ] Settings
+- [ ] Add Lua to allow custom implementation of custom instructions
