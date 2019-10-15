@@ -4,7 +4,7 @@
 
 #ifdef BONSAI_WEB
 #include <emscripten/bind.h>
-vector<string> getCode(std::string code, bool autoHelper = true) {
+vector<string> getCode(std::string code, bool autoHelper) {
 	BonsaiCompiler compiler(code);
 	compiler.setAutoHelperFlag(autoHelper);
 

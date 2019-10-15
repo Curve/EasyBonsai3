@@ -204,6 +204,7 @@ jmp 68
 
 # TODO
 - [ ] Greater/Less than
-- [ ] Bonsai Interpreter
 - [ ] Settings
+- [ ] Bonsai Interpreter
+- [ ] Add option to compile to nasm and execute
 - [ ] Add Lua to allow custom implementation of custom instructions
