@@ -1,3 +1,4 @@
+#ifndef BONSAI_WEB
 #ifndef RANG_DOT_HPP
 #define RANG_DOT_HPP
 
@@ -512,3 +513,4 @@ namespace rang {
 #undef OS_MAC
 
 #endif /* ifndef RANG_DOT_HPP */
+#endif

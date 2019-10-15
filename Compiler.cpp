@@ -1,35 +1,15 @@
 #include "Compiler.h"
 #include <fstream>
+#include <iostream>
 #include "rang.h"
 
 using std::cout;
 using std::endl;
 
-//TODO: One last check to be certain, that no unknown lines remain!
-
-regex easyBonsaiRegex(R"r(^(\[(\d+)=(\d+)#(\d+)\])|(\[(\d+)=zero\])|(jmp (\w+))|((\w+):\ .*)|(jmp ([+-]\d+))|((\d+) AND (\d+))|((\d+) NAND (\d+))|((\d+) OR (\d+))$)r");
-//
-//! [0(2)=1(3)#2(4)]		Group 1
-//! [0(6)=zero]				Group 5
-//! jmp func1(8)			Group 7
-//! func1(10): test			Group 9
-//! jmp +5(12)				Group 11
-//! 10(14) AND 20(15)		Group 12
-//! 10(17) NAND 30(18)		Group 16
-//! 40(20) OR 40(21)		Group 19
-//
-
+regex easyBonsaiRegex(R"r(^(mov (\d+),\ *(\d+)\ *#\ *(\d+))|(mov (\d+)\ *,\ *NULL)|(goto (.+))|((.+):\ .*)|(jmp ([+-]\d+))|(and (\d+)\ *,\ *(\d+))|((\d+) NAND (\d+))|(or (\d+)\ *,\ *(\d+))|((.*):)$)r");
 regex bonsaiValidationRegex(R"r(^(tst \d+)|(jmp \d+)|(inc \d+)|(dec \d+)|(hlt)$)r");
-//
-//! tst 1
-//! jmp 3
-//! jmp 6
-//! dec 1
-//! inc 0
-//! jmp 0
-//! hlt
-//
 
+#ifndef BONSAI_WEB
 BonsaiCompiler::BonsaiCompiler(string input, string output)
 {
 	this->m_OutPutFile = output;
@@ -41,18 +21,37 @@ BonsaiCompiler::BonsaiCompiler(string input, string output)
 		m_CurrentCode.push_back(currentLine);
 	}
 }
-BonsaiCompiler::BonsaiCompiler(string input, string output, bool hln)
-{
-	this->m_OutPutFile = output;
-	this->m_HideLineNumbers = hln;
+#endif
 
-	std::ifstream fInput(input);
-	string currentLine;
-	while (std::getline(fInput, currentLine))
+#ifdef BONSAI_WEB
+BonsaiCompiler::BonsaiCompiler(string& inputLiteral)
+{
+	this->m_OutPutFile = "";
+
+	static auto split = [](const std::string& str, const std::string& delimiter)
 	{
-		m_CurrentCode.push_back(currentLine);
+		std::vector<std::string> strings;
+
+		std::string::size_type pos = 0;
+		std::string::size_type prev = 0;
+		while ((pos = str.find(delimiter, prev)) != std::string::npos)
+		{
+			strings.push_back(str.substr(prev, pos - prev));
+			prev = pos + 1;
+		}
+
+		// To get the last substring (or only, if delimiter is not found)
+		strings.push_back(str.substr(prev));
+
+		return strings;
+	};
+	auto splitted = split(inputLiteral, "\n");
+	for (auto line : splitted)
+	{
+		m_CurrentCode.push_back(line);
 	}
 }
+#endif
 
 bool BonsaiCompiler::validateCode()
 {
@@ -73,31 +72,113 @@ bool BonsaiCompiler::compile()
 {
 	if (!validateCode())
 	{
+#ifndef BONSAI_WEB
 		cout << rang::fg::red << "[ERROR] " << rang::fg::reset << "Invalid Code found!" << endl;
 		for (auto error : m_ErrorStack)
 		{
 			cout << rang::fg::red << "[ERROR] " << rang::fg::reset << error << endl;
+}
+#endif
+		for (auto error : m_ErrorStack)
+		{
+			printf(error.c_str());
 		}
 		return false;
 	}
-	
-	//c_Or();
-	//c_And();
+
+	c_Or();
+	c_And();
 	c_Funcs();
 	c_Allocs();
-	c_EasyJmps();
-
-	for (auto line : m_CurrentCode)
-	{
-		cout << line << endl;
-	}
+	c_RelativeJmps();
 
 	return m_ErrorStack.size() <= 0;
 }
+void BonsaiCompiler::c_Or()
+{
+	static auto isOr = [](string& line, string& a, string& b)
+	{
+		std::smatch res;
+		if (std::regex_match(line, res, easyBonsaiRegex))
+		{
+			if (res[19].matched)
+			{
+				a = res[20];
+				b = res[21];
+				return true;
+			}
+		}
+		return false;
+	};
 
+	string a, b;
+	for (int i = 0; m_CurrentCode.size() > i; i++)
+	{
+		auto line = m_CurrentCode[i];
+		if (isOr(line, a, b))
+		{
+			auto failure = std::to_string(i + 2);
+			auto success = std::to_string(i + 1);
+			auto allocAddy = m_CurrentCode.size();
+			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
+			vector<string> func =
+			{
+				"tst " + a,
+				"jmp " + success,
+				"goto anotherTest",
+				"anotherTest: tst " + b,
+				"jmp " + success,
+				"jmp " + failure
+			};
+			m_CurrentCode += func;
+			c_Funcs();
+		}
+	}
+}
+void BonsaiCompiler::c_And()
+{
+	static auto isAnd = [](string& line, string& a, string& b)
+	{
+		std::smatch res;
+		if (std::regex_match(line, res, easyBonsaiRegex))
+		{
+			if (res[13].matched)
+			{
+				a = res[14];
+				b = res[15];
+				return true;
+			}
+		}
+		return false;
+	};
+
+	string a, b;
+	for (int i = 0; m_CurrentCode.size() > i; i++)
+	{
+		auto line = m_CurrentCode[i];
+		if (isAnd(line, a, b))
+		{
+			auto failure = std::to_string(i + 2);
+			auto success = std::to_string(i + 1);
+			auto allocAddy = m_CurrentCode.size();
+			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
+			vector<string> func =
+			{
+				"tst " + a,
+				"goto aNotNull",
+				"jmp " + failure,
+				"aNotNull: tst " + b,
+				"jmp " + success,
+				"jmp " + failure
+			};
+			m_CurrentCode += func;
+			c_Funcs();
+		}
+	}
+}
 void BonsaiCompiler::c_Allocs()
 {
-	static auto isAlloc = [&](string& line, string& a, string& b, string& h)
+	static auto isAlloc = [](string& line, string& a, string& b, string& h)
 	{
 		std::smatch res;
 		if (std::regex_match(line, res, easyBonsaiRegex))
@@ -112,7 +193,7 @@ void BonsaiCompiler::c_Allocs()
 		}
 		return false;
 	};
-	static auto isZeroAlloc = [&](string& line, string& a)
+	static auto isZeroAlloc = [](string& line, string& a)
 	{
 		std::smatch res;
 		if (std::regex_match(line, res, easyBonsaiRegex))
@@ -137,19 +218,19 @@ void BonsaiCompiler::c_Allocs()
 			vector<string> func =
 			{
 				"start: tst " + b,
-				"jmp bNotNull",
-				"jmp bNull",
+				"goto bNotNull",
+				"goto bNull",
 				"bNotNull: inc " + h,
 				"inc " + a,
 				"dec " + b,
-				"jmp start",
+				"goto start",
 				"bNull: tst " + h,
-				"jmp restore",
-				"jmp resetHelper",
+				"goto restore",
+				"goto resetHelper",
 				"restore: dec " + h,
 				"inc " + b,
-				"jmp bNull",
-				"resetHelper: [" + h + "=zero]",
+				"goto bNull",
+				"resetHelper: mov " + h + ", NULL",
 				"jmp " + std::to_string(i + 1)
 			};
 			m_CurrentCode += func;
@@ -166,7 +247,7 @@ void BonsaiCompiler::c_Allocs()
 			vector<string> func =
 			{
 				"tst " + a,
-				"jmp notNull",
+				"goto notNull",
 				"jmp " + std::to_string(i + 1),
 				"notNull: dec " + a,
 				"jmp " + std::to_string(allocAddy)
@@ -180,7 +261,7 @@ void BonsaiCompiler::c_Funcs()
 {
 	m_FuncIndex.clear();
 
-	static auto isFunc = [&](string& line, string& name)
+	static auto isFunc = [](string& line, string& name)
 	{
 		std::smatch res;
 		if (std::regex_match(line, res, easyBonsaiRegex))
@@ -193,7 +274,20 @@ void BonsaiCompiler::c_Funcs()
 		}
 		return false;
 	};
-	static auto isFuncJmp = [&](string& line, string& name)
+	static auto isFuncT2 = [](string& line, string& name)
+	{
+		std::smatch res;
+		if (std::regex_match(line, res, easyBonsaiRegex))
+		{
+			if (res[22].matched)
+			{
+				name = res[23];
+				return true;
+			}
+		}
+		return false;
+	};
+	static auto isFuncJmp = [](string& line, string& name)
 	{
 		std::smatch res;
 		if (std::regex_match(line, res, easyBonsaiRegex))
@@ -216,6 +310,11 @@ void BonsaiCompiler::c_Funcs()
 			m_CurrentCode[i] = line.substr(funcName.length() + 2);
 			m_FuncIndex.insert({ funcName, i });
 		}
+		if (isFuncT2(line, funcName) && m_FuncIndex.find(funcName) == m_FuncIndex.end())
+		{
+			m_CurrentCode[i] = "jmp +1";
+			m_FuncIndex.insert({ funcName, i+1 });
+		}
 	}
 	for (int i = 0; m_CurrentCode.size() > i; i++)
 	{
@@ -226,9 +325,9 @@ void BonsaiCompiler::c_Funcs()
 		}
 	}
 }
-void BonsaiCompiler::c_EasyJmps()
+void BonsaiCompiler::c_RelativeJmps()
 {
-	static auto isEasyJmp = [&](string& line, string& to)
+	static auto isEasyJmp = [](string& line, string& to)
 	{
 		std::smatch res;
 		if (std::regex_match(line, res, easyBonsaiRegex))
@@ -241,7 +340,7 @@ void BonsaiCompiler::c_EasyJmps()
 		}
 		return false;
 	};
-	
+
 	string to;
 	for (int i = 0; m_CurrentCode.size() > i; i++)
 	{
@@ -260,4 +359,37 @@ void BonsaiCompiler::c_EasyJmps()
 			}
 		}
 	}
+}
+
+#ifndef BONSAI_WEB
+void BonsaiCompiler::writeResults()
+{
+	if (m_ErrorStack.size() > 0) return;
+	cout << rang::fg::green << "[SUCCESS] " << rang::fg::reset << "Code compiled successfuly!" << endl;
+	if (m_OutPutFile.size() > 0)
+	{
+		std::ofstream out(m_OutPutFile);
+		for (auto line : m_CurrentCode)
+		{
+			out << line << endl;
+		}
+		out.close();
+	}
+	else
+	{
+		for (auto line : m_CurrentCode)
+		{
+			cout << rang::fg::gray << line << rang::fg::reset << endl;
+		}
+			}
+		}
+#endif
+
+vector<string>& BonsaiCompiler::getCodeStack()
+{
+	return this->m_CurrentCode;
+}
+vector<string>& BonsaiCompiler::getErrorStack()
+{
+	return this->m_ErrorStack;
 }

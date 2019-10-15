@@ -13,8 +13,8 @@ extern regex parservalidator;
 struct ParseResult
 {
 	string inputFile;
-	bool hidelinenumbers = false;
-	string outputFile = "output.bs";
+	string outputFile;
+	//bool hidelinenumbers = false;
 };
 
 namespace ArgParser

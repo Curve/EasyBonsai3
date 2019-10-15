@@ -5,6 +5,7 @@ regex parservalidator(R"r(^(?=.)(((--input|-i) ([a-zA-Z0-9.].*[a-zA-Z0-9.]{1,}))
 using std::cout;
 using std::endl;
 
+#ifndef BONSAI_WEB
 ParseResult ArgParser::parse(int argc, char** args)
 {
 	if (argc < 2)
@@ -23,10 +24,10 @@ ParseResult ArgParser::parse(int argc, char** args)
 		string arg = args[i];
 		if (regex_match(arg, regex, parservalidator))
 		{
-			if (regex[8].matched)
-			{
-				result.hidelinenumbers = true;
-			}
+			//if (regex[8].matched)
+			//{
+			//	result.hidelinenumbers = true;
+			//}
 			if (regex[9].matched)
 			{
 				cout << rang::fg::yellow;
@@ -34,7 +35,7 @@ ParseResult ArgParser::parse(int argc, char** args)
 				cout << rang::fg::reset;
 				cout << "--input (-i) [file]\t\t\tSpecifies the input file [crucial]" << endl;
 				cout << "--output (-o) [file]\t\t\tSpecifies the output file, default is 'output.bs'" << endl;
-				cout << "--hidelinenumbers (-hln) [file]\t\tHides the line numbers in the console output" << endl;
+				//cout << "--hidelinenumbers (-hln) [file]\t\tHides the line numbers in the console output" << endl;
 				exit(0);
 			}
 		}
@@ -70,3 +71,4 @@ ParseResult ArgParser::parse(int argc, char** args)
 
 	return result;
 }
+#endif

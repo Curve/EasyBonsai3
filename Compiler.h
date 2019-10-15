@@ -20,11 +20,14 @@ std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vecto
 class BonsaiCompiler
 {
 public:
+#ifndef BONSAI_WEB
 	BonsaiCompiler(string input, string output);
-	BonsaiCompiler(string input, string output, bool hideLineNumbers);
+#endif
+#ifdef BONSAI_WEB
+	BonsaiCompiler(string& inputLiteral);
+#endif
 private:
 	string m_OutPutFile;
-	bool m_HideLineNumbers;
 	vector<string> m_ErrorStack;
 	vector<string> m_CurrentCode;
 	map<string, int> m_FuncIndex;
@@ -41,11 +44,15 @@ private:
 	void c_And();
 	void c_Funcs();
 	void c_Allocs(); //! Works
-	void c_EasyJmps();
+	void c_RelativeJmps();
 
 	//! ~ Important ~
 	bool validateCode();
 public:
 	bool compile();
+#ifndef BONSAI_WEB
 	void writeResults();
+#endif
+	vector<string>& getCodeStack();
+	vector<string>& getErrorStack();
 };
