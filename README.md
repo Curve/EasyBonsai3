@@ -35,7 +35,7 @@ Windows/Linux:
 
 Web:
 - Compile with emscripten
-  ```em++ main.cpp Compiler.cpp ArgParser.cpp -o easybonsai.js -std=c++17 --bind```
+  ```em++ main.cpp Compiler.cpp ArgParser.cpp -o easybonsai.js -std=c++17 -D BONSAI_WEB --bind```
 
 # Features
 ## Labels
@@ -48,7 +48,7 @@ lbl.main:
 goto lbl.main
 ```
 ## Mov
-Mov is used to allocate one value the value of another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper value.
+Mov is used to copy the value of a variable to another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper value.
 ```nasm
 ; Variable named "1" will be asgined the value of variable named "2", "3" will be
 ; used as a buffer and is expected to be 0, after successfull allocation 
@@ -56,6 +56,8 @@ Mov is used to allocate one value the value of another, however this cannot be d
 mov 1, 2 # 3
 ; spaces are ignored, so it can also be written like this for example
 mov 1,2#3
+; or if compiled with `-ah` flag
+mov 1, 2 ; Variable 3 still needs to be initialized but will be auto filled in.
 ; code...
 ; or set a variable to 0!
 mov 1, NULL ; "1" will now be 0
@@ -95,6 +97,10 @@ Sometimes its easier to have jmps that jump to a relative address instead of a s
 - Compile/Translate your code
   ```sh
   ./EasyBonsai.exe -i codefile.extension -o outputfile.extension
+  # Or just displaying the output in your console
+  ./EasyBonsai.exe -i codefile.extension
+  # Further information on flags like -ah is presented here:
+  ./EasyBonsai.exe -h
   ```
 
 # Example

@@ -1,6 +1,6 @@
 #include "ArgParser.h"
 #include "rang.h"
-regex parservalidator(R"r(^(?=.)(((--input|-i) ([a-zA-Z0-9.].*[a-zA-Z0-9.]{1,}))?|((--output|-o) ([a-zA-Z0-9.].*[a-zA-Z0-9.]{1,}))?|(--hidelinenumbers|-hln)?|(--help|-h)?)$)r");
+regex parservalidator(R"r(^(?=.)(((--input|-i) ([a-zA-Z0-9.].*[a-zA-Z0-9.]{1,}))?|((--output|-o) ([a-zA-Z0-9.].*[a-zA-Z0-9.]{1,}))?|(--hidelinenumbers|-hln)?|(--help|-h)?|(-ah|--auto-helper)?)$)r");
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -34,9 +34,14 @@ ParseResult ArgParser::parse(int argc, char** args)
 				cout << "Help:" << endl;
 				cout << rang::fg::reset;
 				cout << "--input (-i) [file]\t\t\tSpecifies the input file [crucial]" << endl;
-				cout << "--output (-o) [file]\t\t\tSpecifies the output file, default is 'output.bs'" << endl;
+				cout << "--output (-o) [file]\t\t\tSpecifies the output file, if non is defined output will be print to console" << endl;
+				cout << "--auto-helper (-ah)\t\t\tAutomatically determine the address of the helper value" << endl;
 				//cout << "--hidelinenumbers (-hln) [file]\t\tHides the line numbers in the console output" << endl;
 				exit(0);
+			}
+			if (regex[10].matched)
+			{
+				result.autoHelper = true;
 			}
 		}
 	}

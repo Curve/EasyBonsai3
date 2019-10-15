@@ -6,7 +6,8 @@
 using std::cout;
 using std::endl;
 
-regex easyBonsaiRegex(R"r(^(mov (\d+),\ *(\d+)\ *#\ *(\d+))|(mov (\d+)\ *,\ *NULL)|(goto (.+))|((.+):\ .*)|(jmp ([+-]\d+))|(and (\d+)\ *,\ *(\d+))|((\d+) NAND (\d+))|(or (\d+)\ *,\ *(\d+))|((.*):)$)r");
+regex easyBonsaiRegex(R"r(^(mov (\d+),\ *(\d+)\ *#\ *(\d+))|(mov (\d+)\ *,\ *NULL)|(goto (.+))|((.+):\ .*)|(jmp ([+-]\d+))|(and (\d+)\ *,\ *(\d+))|((\d+) NAND (\d+))|(or (\d+)\ *,\ *(\d+))|((.*):)|(mov (\d+),\ *(\d+)\ *)$)r");
+regex addyRegex(R"r(^(tst (\d+))|(inc (\d+))|(dec (\d+))|(mov (\d+),\ *(\d+)\ *)|(mov (\d+)\ *,\ *NULL)|(and (\d+)\ *,\ *(\d+))|(or (\d+)\ *,\ *(\d+))$)r");
 regex bonsaiValidationRegex(R"r(^(tst \d+)|(jmp \d+)|(inc \d+)|(dec \d+)|(hlt)$)r");
 
 #ifndef BONSAI_WEB
@@ -53,6 +54,33 @@ BonsaiCompiler::BonsaiCompiler(string& inputLiteral)
 }
 #endif
 
+void BonsaiCompiler::determineAddy()
+{
+	static const auto addyIndices = { 2,6,4,8,9,13,14,16,17,11 };
+	if (!m_AutoHelper) return;
+	for (int index = 0; m_CurrentCode.size() > index; index++)
+	{
+		auto line = m_CurrentCode[index];
+		std::smatch res;
+		if (regex_match(line, res, addyRegex))
+		{
+			for (auto index : addyIndices)
+			{
+				if (res[index].matched && std::find(m_DefaultAddys.begin(), m_DefaultAddys.end(), index) == m_DefaultAddys.end())
+				{
+					m_DefaultAddys.push_back(std::atoi(res[index].str().c_str()));
+				}
+			}
+		}
+	}
+	int biggest = 0;
+	for (auto addy : m_DefaultAddys)
+	{
+		if (addy > biggest) biggest = addy;
+	}
+	m_HelperAddy = ++biggest;
+}
+
 bool BonsaiCompiler::validateCode()
 {
 	for (int index = 0; m_CurrentCode.size() > index; index++)
@@ -77,14 +105,16 @@ bool BonsaiCompiler::compile()
 		for (auto error : m_ErrorStack)
 		{
 			cout << rang::fg::red << "[ERROR] " << rang::fg::reset << error << endl;
-}
+		}
 #endif
 		for (auto error : m_ErrorStack)
 		{
-			printf(error.c_str());
+			printf("%s", error.c_str());
 		}
 		return false;
 	}
+
+	determineAddy();
 
 	c_Or();
 	c_And();
@@ -193,6 +223,22 @@ void BonsaiCompiler::c_Allocs()
 		}
 		return false;
 	};
+	static auto isSmartAlloc = [this](string& line, string& a, string& b, string& h)
+	{
+		if (!m_AutoHelper) return false;
+		std::smatch res;
+		if (std::regex_match(line, res, easyBonsaiRegex))
+		{
+			if (res[24].matched)
+			{
+				a = res[25];
+				b = res[26];
+				h = std::to_string(m_HelperAddy);
+				return true;
+			}
+		}
+		return false;
+	};
 	static auto isZeroAlloc = [](string& line, string& a)
 	{
 		std::smatch res;
@@ -211,12 +257,13 @@ void BonsaiCompiler::c_Allocs()
 	for (int i = 0; m_CurrentCode.size() > i; i++)
 	{
 		auto line = m_CurrentCode[i];
-		if (isAlloc(line, a, b, h))
+		if (isAlloc(line, a, b, h) || isSmartAlloc(line, a, b, h))
 		{
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func =
 			{
+				"mov " + h + ", NULL",
 				"start: tst " + b,
 				"goto bNotNull",
 				"goto bNull",
@@ -226,12 +273,10 @@ void BonsaiCompiler::c_Allocs()
 				"goto start",
 				"bNull: tst " + h,
 				"goto restore",
-				"goto resetHelper",
+				"jmp " + std::to_string(i + 1),
 				"restore: dec " + h,
 				"inc " + b,
 				"goto bNull",
-				"resetHelper: mov " + h + ", NULL",
-				"jmp " + std::to_string(i + 1)
 			};
 			m_CurrentCode += func;
 			c_Funcs();
@@ -313,7 +358,7 @@ void BonsaiCompiler::c_Funcs()
 		if (isFuncT2(line, funcName) && m_FuncIndex.find(funcName) == m_FuncIndex.end())
 		{
 			m_CurrentCode[i] = "jmp +1";
-			m_FuncIndex.insert({ funcName, i+1 });
+			m_FuncIndex.insert({ funcName, i + 1 });
 		}
 	}
 	for (int i = 0; m_CurrentCode.size() > i; i++)
@@ -381,8 +426,8 @@ void BonsaiCompiler::writeResults()
 		{
 			cout << rang::fg::gray << line << rang::fg::reset << endl;
 		}
-			}
-		}
+	}
+}
 #endif
 
 vector<string>& BonsaiCompiler::getCodeStack()
@@ -392,4 +437,8 @@ vector<string>& BonsaiCompiler::getCodeStack()
 vector<string>& BonsaiCompiler::getErrorStack()
 {
 	return this->m_ErrorStack;
+}
+void BonsaiCompiler::setAutoHelperFlag(bool flag)
+{
+	this->m_AutoHelper = flag;
 }

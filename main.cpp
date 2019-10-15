@@ -4,8 +4,10 @@
 
 #ifdef BONSAI_WEB
 #include <emscripten/bind.h>
-vector<string> getCode(std::string code) {
+vector<string> getCode(std::string code, bool autoHelper = true) {
 	BonsaiCompiler compiler(code);
+	compiler.setAutoHelperFlag(autoHelper);
+
 	if (compiler.compile())
 	{
 		auto codeStack = compiler.getCodeStack();
@@ -24,6 +26,7 @@ int main(int argc, char** args)
 {
 	auto parseResults = ArgParser::parse(argc, args);
 	BonsaiCompiler compiler(parseResults.inputFile, parseResults.outputFile);
+	compiler.setAutoHelperFlag(parseResults.autoHelper);
 	compiler.compile();
 	compiler.writeResults();
 

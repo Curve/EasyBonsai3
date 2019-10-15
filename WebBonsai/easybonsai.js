@@ -621,8 +621,8 @@ var wasmMemory;
 // In the wasm backend, we polyfill the WebAssembly object,
 // so this creates a (non-native-wasm) table for us.
 var wasmTable = new WebAssembly.Table({
-  'initial': 19072,
-  'maximum': 19072,
+  'initial': 17024,
+  'maximum': 17024,
   'element': 'anyfunc'
 });
 
@@ -1227,11 +1227,11 @@ function updateGlobalBufferAndViews(buf) {
 
 
 var STATIC_BASE = 1024,
-    STACK_BASE = 40800,
+    STACK_BASE = 37488,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 5283680,
-    DYNAMIC_BASE = 5283680,
-    DYNAMICTOP_PTR = 40592;
+    STACK_MAX = 5280368,
+    DYNAMIC_BASE = 5280368,
+    DYNAMICTOP_PTR = 37280;
 
 assert(STACK_BASE % 16 === 0, 'stack must start aligned');
 assert(DYNAMIC_BASE % 16 === 0, 'heap must start aligned');
@@ -1750,7 +1750,7 @@ var ASM_CONSTS = [];
 
 
 
-// STATICTOP = STATIC_BASE + 39776;
+// STATICTOP = STATIC_BASE + 36464;
 /* global initializers */  __ATINIT__.push({ func: function() { globalCtors() } });
 
 
@@ -1761,7 +1761,7 @@ var ASM_CONSTS = [];
 
 
 /* no memory initializer */
-var tempDoublePtr = 40784
+var tempDoublePtr = 37472
 assert(tempDoublePtr % 8 == 0);
 
 function copyTempFloat(ptr) { // functions, because inlining this code increases code size too much
@@ -1821,61 +1821,6 @@ function copyTempDouble(ptr) {
       var js = jsStackTrace();
       if (Module['extraStackTrace']) js += '\n' + Module['extraStackTrace']();
       return demangleAll(js);
-    }
-
-  
-  var ENV={};function ___buildEnvironment(environ) {
-      // WARNING: Arbitrary limit!
-      var MAX_ENV_VALUES = 64;
-      var TOTAL_ENV_SIZE = 1024;
-  
-      // Statically allocate memory for the environment.
-      var poolPtr;
-      var envPtr;
-      if (!___buildEnvironment.called) {
-        ___buildEnvironment.called = true;
-        // Set default values. Use string keys for Closure Compiler compatibility.
-        ENV['USER'] = 'web_user';
-        ENV['LOGNAME'] = 'web_user';
-        ENV['PATH'] = '/';
-        ENV['PWD'] = '/';
-        ENV['HOME'] = '/home/web_user';
-        // Browser language detection #8751
-        ENV['LANG'] = ((typeof navigator === 'object' && navigator.languages && navigator.languages[0]) || 'C').replace('-', '_') + '.UTF-8';
-        ENV['_'] = thisProgram;
-        // Allocate memory.
-        poolPtr = getMemory(TOTAL_ENV_SIZE);
-        envPtr = getMemory(MAX_ENV_VALUES * 4);
-        HEAP32[((envPtr)>>2)]=poolPtr;
-        HEAP32[((environ)>>2)]=envPtr;
-      } else {
-        envPtr = HEAP32[((environ)>>2)];
-        poolPtr = HEAP32[((envPtr)>>2)];
-      }
-  
-      // Collect key=value lines.
-      var strings = [];
-      var totalSize = 0;
-      for (var key in ENV) {
-        if (typeof ENV[key] === 'string') {
-          var line = key + '=' + ENV[key];
-          strings.push(line);
-          totalSize += line.length;
-        }
-      }
-      if (totalSize > TOTAL_ENV_SIZE) {
-        throw new Error('Environment size exceeded TOTAL_ENV_SIZE!');
-      }
-  
-      // Make new.
-      var ptrSize = 4;
-      for (var i = 0; i < strings.length; i++) {
-        var line = strings[i];
-        writeAsciiToMemory(line, poolPtr);
-        HEAP32[(((envPtr)+(i * ptrSize))>>2)]=poolPtr;
-        poolPtr += line.length + 1;
-      }
-      HEAP32[(((envPtr)+(strings.length * ptrSize))>>2)]=0;
     }
 
   function ___cxa_allocate_exception(size) {
@@ -5087,22 +5032,6 @@ function copyTempDouble(ptr) {
   }
 
   
-  function _fd_read(fd, iov, iovcnt, pnum) {try {
-  
-      var stream = SYSCALLS.getStreamFromFD(fd);
-      var num = SYSCALLS.doReadv(stream, iov, iovcnt);
-      HEAP32[((pnum)>>2)]=num
-      return 0;
-    } catch (e) {
-    if (typeof FS === 'undefined' || !(e instanceof FS.ErrnoError)) abort(e);
-    return e.errno;
-  }
-  }function ___wasi_fd_read(
-  ) {
-  return _fd_read.apply(null, arguments)
-  }
-
-  
   function _fd_seek(fd, offset_low, offset_high, whence, newOffset) {try {
   
       var stream = SYSCALLS.getStreamFromFD(fd);
@@ -6801,7 +6730,8 @@ function copyTempDouble(ptr) {
       abortOnCannotGrowMemory(requestedSize);
     }
 
-  function _getenv(name) {
+  
+  var ENV={};function _getenv(name) {
       // char *getenv(const char *name);
       // http://pubs.opengroup.org/onlinepubs/009695399/functions/getenv.html
       if (name === 0) return 0;
@@ -7268,11 +7198,10 @@ function nullFunc_viii(x) { abortFnPtrError(x, 'viii'); }
 function nullFunc_viiii(x) { abortFnPtrError(x, 'viiii'); }
 function nullFunc_viiiii(x) { abortFnPtrError(x, 'viiiii'); }
 function nullFunc_viiiiii(x) { abortFnPtrError(x, 'viiiiii'); }
-function nullFunc_viijii(x) { abortFnPtrError(x, 'viijii'); }
 
 var asmGlobalArg = {};
 
-var asmLibraryArg = { "ClassHandle": ClassHandle, "ClassHandle_clone": ClassHandle_clone, "ClassHandle_delete": ClassHandle_delete, "ClassHandle_deleteLater": ClassHandle_deleteLater, "ClassHandle_isAliasOf": ClassHandle_isAliasOf, "ClassHandle_isDeleted": ClassHandle_isDeleted, "RegisteredClass": RegisteredClass, "RegisteredPointer": RegisteredPointer, "RegisteredPointer_deleteObject": RegisteredPointer_deleteObject, "RegisteredPointer_destructor": RegisteredPointer_destructor, "RegisteredPointer_fromWireType": RegisteredPointer_fromWireType, "RegisteredPointer_getPointee": RegisteredPointer_getPointee, "___buildEnvironment": ___buildEnvironment, "___cxa_allocate_exception": ___cxa_allocate_exception, "___cxa_begin_catch": ___cxa_begin_catch, "___cxa_throw": ___cxa_throw, "___exception_addRef": ___exception_addRef, "___exception_deAdjust": ___exception_deAdjust, "___gxx_personality_v0": ___gxx_personality_v0, "___lock": ___lock, "___map_file": ___map_file, "___setErrNo": ___setErrNo, "___syscall91": ___syscall91, "___unlock": ___unlock, "___wasi_fd_close": ___wasi_fd_close, "___wasi_fd_read": ___wasi_fd_read, "___wasi_fd_seek": ___wasi_fd_seek, "___wasi_fd_write": ___wasi_fd_write, "__addDays": __addDays, "__arraySum": __arraySum, "__embind_register_bool": __embind_register_bool, "__embind_register_class": __embind_register_class, "__embind_register_class_constructor": __embind_register_class_constructor, "__embind_register_class_function": __embind_register_class_function, "__embind_register_emval": __embind_register_emval, "__embind_register_float": __embind_register_float, "__embind_register_function": __embind_register_function, "__embind_register_integer": __embind_register_integer, "__embind_register_memory_view": __embind_register_memory_view, "__embind_register_std_string": __embind_register_std_string, "__embind_register_std_wstring": __embind_register_std_wstring, "__embind_register_void": __embind_register_void, "__emscripten_syscall_munmap": __emscripten_syscall_munmap, "__emval_decref": __emval_decref, "__emval_incref": __emval_incref, "__emval_register": __emval_register, "__emval_take_value": __emval_take_value, "__isLeapYear": __isLeapYear, "__memory_base": 1024, "__table_base": 0, "_abort": _abort, "_embind_repr": _embind_repr, "_emscripten_get_heap_size": _emscripten_get_heap_size, "_emscripten_memcpy_big": _emscripten_memcpy_big, "_emscripten_resize_heap": _emscripten_resize_heap, "_fd_close": _fd_close, "_fd_read": _fd_read, "_fd_seek": _fd_seek, "_fd_write": _fd_write, "_getenv": _getenv, "_llvm_stackrestore": _llvm_stackrestore, "_llvm_stacksave": _llvm_stacksave, "_llvm_trap": _llvm_trap, "_strftime": _strftime, "_strftime_l": _strftime_l, "abort": abort, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "abortStackOverflow": abortStackOverflow, "attachFinalizer": attachFinalizer, "constNoSmartPtrRawPointerToWireType": constNoSmartPtrRawPointerToWireType, "count_emval_handles": count_emval_handles, "craftInvokerFunction": craftInvokerFunction, "createNamedFunction": createNamedFunction, "demangle": demangle, "demangleAll": demangleAll, "detachFinalizer": detachFinalizer, "downcastPointer": downcastPointer, "embind__requireFunction": embind__requireFunction, "embind_init_charCodes": embind_init_charCodes, "ensureOverloadTable": ensureOverloadTable, "exposePublicSymbol": exposePublicSymbol, "extendError": extendError, "floatReadValueFromPointer": floatReadValueFromPointer, "flushPendingDeletes": flushPendingDeletes, "genericPointerToWireType": genericPointerToWireType, "getBasestPointer": getBasestPointer, "getInheritedInstance": getInheritedInstance, "getInheritedInstanceCount": getInheritedInstanceCount, "getLiveInheritedInstances": getLiveInheritedInstances, "getShiftFromSize": getShiftFromSize, "getTempRet0": getTempRet0, "getTypeName": getTypeName, "get_first_emval": get_first_emval, "heap32VectorToArray": heap32VectorToArray, "init_ClassHandle": init_ClassHandle, "init_RegisteredPointer": init_RegisteredPointer, "init_embind": init_embind, "init_emval": init_emval, "integerReadValueFromPointer": integerReadValueFromPointer, "jsStackTrace": jsStackTrace, "makeClassHandle": makeClassHandle, "makeLegalFunctionName": makeLegalFunctionName, "memory": wasmMemory, "new_": new_, "nonConstNoSmartPtrRawPointerToWireType": nonConstNoSmartPtrRawPointerToWireType, "nullFunc_i": nullFunc_i, "nullFunc_ii": nullFunc_ii, "nullFunc_iidiiii": nullFunc_iidiiii, "nullFunc_iii": nullFunc_iii, "nullFunc_iiii": nullFunc_iiii, "nullFunc_iiiii": nullFunc_iiiii, "nullFunc_iiiiid": nullFunc_iiiiid, "nullFunc_iiiiii": nullFunc_iiiiii, "nullFunc_iiiiiid": nullFunc_iiiiiid, "nullFunc_iiiiiii": nullFunc_iiiiiii, "nullFunc_iiiiiiii": nullFunc_iiiiiiii, "nullFunc_iiiiiiiii": nullFunc_iiiiiiiii, "nullFunc_iiiiij": nullFunc_iiiiij, "nullFunc_jiji": nullFunc_jiji, "nullFunc_v": nullFunc_v, "nullFunc_vi": nullFunc_vi, "nullFunc_vii": nullFunc_vii, "nullFunc_viii": nullFunc_viii, "nullFunc_viiii": nullFunc_viiii, "nullFunc_viiiii": nullFunc_viiiii, "nullFunc_viiiiii": nullFunc_viiiiii, "nullFunc_viijii": nullFunc_viijii, "readLatin1String": readLatin1String, "registerType": registerType, "releaseClassHandle": releaseClassHandle, "replacePublicSymbol": replacePublicSymbol, "requireRegisteredType": requireRegisteredType, "runDestructor": runDestructor, "runDestructors": runDestructors, "setDelayFunction": setDelayFunction, "setTempRet0": setTempRet0, "shallowCopyInternalPointer": shallowCopyInternalPointer, "simpleReadValueFromPointer": simpleReadValueFromPointer, "stackTrace": stackTrace, "table": wasmTable, "tempDoublePtr": tempDoublePtr, "throwBindingError": throwBindingError, "throwInstanceAlreadyDeleted": throwInstanceAlreadyDeleted, "throwInternalError": throwInternalError, "throwUnboundTypeError": throwUnboundTypeError, "upcastPointer": upcastPointer, "whenDependentTypesAreResolved": whenDependentTypesAreResolved };
+var asmLibraryArg = { "ClassHandle": ClassHandle, "ClassHandle_clone": ClassHandle_clone, "ClassHandle_delete": ClassHandle_delete, "ClassHandle_deleteLater": ClassHandle_deleteLater, "ClassHandle_isAliasOf": ClassHandle_isAliasOf, "ClassHandle_isDeleted": ClassHandle_isDeleted, "RegisteredClass": RegisteredClass, "RegisteredPointer": RegisteredPointer, "RegisteredPointer_deleteObject": RegisteredPointer_deleteObject, "RegisteredPointer_destructor": RegisteredPointer_destructor, "RegisteredPointer_fromWireType": RegisteredPointer_fromWireType, "RegisteredPointer_getPointee": RegisteredPointer_getPointee, "___cxa_allocate_exception": ___cxa_allocate_exception, "___cxa_begin_catch": ___cxa_begin_catch, "___cxa_throw": ___cxa_throw, "___exception_addRef": ___exception_addRef, "___exception_deAdjust": ___exception_deAdjust, "___gxx_personality_v0": ___gxx_personality_v0, "___lock": ___lock, "___map_file": ___map_file, "___setErrNo": ___setErrNo, "___syscall91": ___syscall91, "___unlock": ___unlock, "___wasi_fd_close": ___wasi_fd_close, "___wasi_fd_seek": ___wasi_fd_seek, "___wasi_fd_write": ___wasi_fd_write, "__addDays": __addDays, "__arraySum": __arraySum, "__embind_register_bool": __embind_register_bool, "__embind_register_class": __embind_register_class, "__embind_register_class_constructor": __embind_register_class_constructor, "__embind_register_class_function": __embind_register_class_function, "__embind_register_emval": __embind_register_emval, "__embind_register_float": __embind_register_float, "__embind_register_function": __embind_register_function, "__embind_register_integer": __embind_register_integer, "__embind_register_memory_view": __embind_register_memory_view, "__embind_register_std_string": __embind_register_std_string, "__embind_register_std_wstring": __embind_register_std_wstring, "__embind_register_void": __embind_register_void, "__emscripten_syscall_munmap": __emscripten_syscall_munmap, "__emval_decref": __emval_decref, "__emval_incref": __emval_incref, "__emval_register": __emval_register, "__emval_take_value": __emval_take_value, "__isLeapYear": __isLeapYear, "__memory_base": 1024, "__table_base": 0, "_abort": _abort, "_embind_repr": _embind_repr, "_emscripten_get_heap_size": _emscripten_get_heap_size, "_emscripten_memcpy_big": _emscripten_memcpy_big, "_emscripten_resize_heap": _emscripten_resize_heap, "_fd_close": _fd_close, "_fd_seek": _fd_seek, "_fd_write": _fd_write, "_getenv": _getenv, "_llvm_stackrestore": _llvm_stackrestore, "_llvm_stacksave": _llvm_stacksave, "_llvm_trap": _llvm_trap, "_strftime": _strftime, "_strftime_l": _strftime_l, "abort": abort, "abortOnCannotGrowMemory": abortOnCannotGrowMemory, "abortStackOverflow": abortStackOverflow, "attachFinalizer": attachFinalizer, "constNoSmartPtrRawPointerToWireType": constNoSmartPtrRawPointerToWireType, "count_emval_handles": count_emval_handles, "craftInvokerFunction": craftInvokerFunction, "createNamedFunction": createNamedFunction, "demangle": demangle, "demangleAll": demangleAll, "detachFinalizer": detachFinalizer, "downcastPointer": downcastPointer, "embind__requireFunction": embind__requireFunction, "embind_init_charCodes": embind_init_charCodes, "ensureOverloadTable": ensureOverloadTable, "exposePublicSymbol": exposePublicSymbol, "extendError": extendError, "floatReadValueFromPointer": floatReadValueFromPointer, "flushPendingDeletes": flushPendingDeletes, "genericPointerToWireType": genericPointerToWireType, "getBasestPointer": getBasestPointer, "getInheritedInstance": getInheritedInstance, "getInheritedInstanceCount": getInheritedInstanceCount, "getLiveInheritedInstances": getLiveInheritedInstances, "getShiftFromSize": getShiftFromSize, "getTempRet0": getTempRet0, "getTypeName": getTypeName, "get_first_emval": get_first_emval, "heap32VectorToArray": heap32VectorToArray, "init_ClassHandle": init_ClassHandle, "init_RegisteredPointer": init_RegisteredPointer, "init_embind": init_embind, "init_emval": init_emval, "integerReadValueFromPointer": integerReadValueFromPointer, "jsStackTrace": jsStackTrace, "makeClassHandle": makeClassHandle, "makeLegalFunctionName": makeLegalFunctionName, "memory": wasmMemory, "new_": new_, "nonConstNoSmartPtrRawPointerToWireType": nonConstNoSmartPtrRawPointerToWireType, "nullFunc_i": nullFunc_i, "nullFunc_ii": nullFunc_ii, "nullFunc_iidiiii": nullFunc_iidiiii, "nullFunc_iii": nullFunc_iii, "nullFunc_iiii": nullFunc_iiii, "nullFunc_iiiii": nullFunc_iiiii, "nullFunc_iiiiid": nullFunc_iiiiid, "nullFunc_iiiiii": nullFunc_iiiiii, "nullFunc_iiiiiid": nullFunc_iiiiiid, "nullFunc_iiiiiii": nullFunc_iiiiiii, "nullFunc_iiiiiiii": nullFunc_iiiiiiii, "nullFunc_iiiiiiiii": nullFunc_iiiiiiiii, "nullFunc_iiiiij": nullFunc_iiiiij, "nullFunc_jiji": nullFunc_jiji, "nullFunc_v": nullFunc_v, "nullFunc_vi": nullFunc_vi, "nullFunc_vii": nullFunc_vii, "nullFunc_viii": nullFunc_viii, "nullFunc_viiii": nullFunc_viiii, "nullFunc_viiiii": nullFunc_viiiii, "nullFunc_viiiiii": nullFunc_viiiiii, "readLatin1String": readLatin1String, "registerType": registerType, "releaseClassHandle": releaseClassHandle, "replacePublicSymbol": replacePublicSymbol, "requireRegisteredType": requireRegisteredType, "runDestructor": runDestructor, "runDestructors": runDestructors, "setDelayFunction": setDelayFunction, "setTempRet0": setTempRet0, "shallowCopyInternalPointer": shallowCopyInternalPointer, "simpleReadValueFromPointer": simpleReadValueFromPointer, "stackTrace": stackTrace, "table": wasmTable, "tempDoublePtr": tempDoublePtr, "throwBindingError": throwBindingError, "throwInstanceAlreadyDeleted": throwInstanceAlreadyDeleted, "throwInternalError": throwInternalError, "throwUnboundTypeError": throwUnboundTypeError, "upcastPointer": upcastPointer, "whenDependentTypesAreResolved": whenDependentTypesAreResolved };
 // EMSCRIPTEN_START_ASM
 var asm =Module["asm"]// EMSCRIPTEN_END_ASM
 (asmGlobalArg, asmLibraryArg, buffer);
@@ -7312,12 +7241,6 @@ var ___getTypeName = Module["___getTypeName"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["___getTypeName"].apply(null, arguments)
-};
-
-var __get_environ = Module["__get_environ"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__get_environ"].apply(null, arguments)
 };
 
 var _emscripten_get_sbrk_ptr = Module["_emscripten_get_sbrk_ptr"] = function() {
@@ -7516,12 +7439,6 @@ var dynCall_viiiiii = Module["dynCall_viiiiii"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["dynCall_viiiiii"].apply(null, arguments)
-};
-
-var dynCall_viijii = Module["dynCall_viijii"] = function() {
-  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
-  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["dynCall_viijii"].apply(null, arguments)
 };
 ;
 

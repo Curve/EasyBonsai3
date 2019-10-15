@@ -14,6 +14,7 @@ struct ParseResult
 {
 	string inputFile;
 	string outputFile;
+	bool autoHelper = false;
 	//bool hidelinenumbers = false;
 };
 

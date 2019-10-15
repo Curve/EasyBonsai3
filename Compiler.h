@@ -10,6 +10,7 @@ using std::map;
 
 extern regex easyBonsaiRegex;
 extern regex bonsaiValidationRegex;
+extern regex addyRegex;
 
 template <typename T>
 std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vector2) {
@@ -27,7 +28,11 @@ public:
 	BonsaiCompiler(string& inputLiteral);
 #endif
 private:
+	bool m_AutoHelper;
+private:
+	int m_HelperAddy;
 	string m_OutPutFile;
+	vector<int> m_DefaultAddys;
 	vector<string> m_ErrorStack;
 	vector<string> m_CurrentCode;
 	map<string, int> m_FuncIndex;
@@ -48,6 +53,7 @@ private:
 
 	//! ~ Important ~
 	bool validateCode();
+	void determineAddy();
 public:
 	bool compile();
 #ifndef BONSAI_WEB
@@ -55,4 +61,6 @@ public:
 #endif
 	vector<string>& getCodeStack();
 	vector<string>& getErrorStack();
+
+	void setAutoHelperFlag(bool flag);
 };
