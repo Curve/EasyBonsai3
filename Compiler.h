@@ -18,6 +18,28 @@ std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vecto
 	return vector1;
 }
 
+enum MOD
+{
+	IFUNC, //! inline func
+	FUNC,  
+	GOTO,  
+	JMPTO,  
+	RJMP,  // Relative Jmp
+	MOVS,  //! smart move
+	MOVZ,  //! zero alloc
+	MOV,
+	AND,
+	OR,
+	
+	CMP,
+	CMPS,	//Smart Cmp
+	JE, //|
+	JL, //|-| This will be simpliefied to just a jmp
+	JG, //|
+};
+
+extern map<MOD, int/*RegexGroup*/> _mods;
+
 class BonsaiCompiler
 {
 public:
@@ -30,8 +52,8 @@ public:
 private:
 	bool m_AutoHelper;
 private:
-	int m_HelperAddy;
 	string m_OutPutFile;
+	map<string, int> m_CAddys;	//<- Not an enum because I may need dynamic allocation
 	vector<int> m_DefaultAddys;
 	vector<string> m_ErrorStack;
 	vector<string> m_CurrentCode;
@@ -45,13 +67,20 @@ private:
 	//! ~~~~~~~
 	//! I know it may not be the best solution to iterate over the code over and over for each implementation but it should work best.
 	//! ~~~~~~~
+	void c_Je();
+	void c_Jl();
+	void c_Jg();
+	void c_Funcs();
+	//! These use labels so they have to be compiled after wards to prevent complication
 	void c_Or();
 	void c_And();
-	void c_Funcs();
-	void c_Allocs(); //! Works
+	void c_Cmp();
+	void c_Allocs();
+	//! ~~
 	void c_RelativeJmps();
-
+	
 	//! ~ Important ~
+	int maxAddy();
 	bool validateCode();
 	void determineAddy();
 public:

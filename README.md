@@ -1,3 +1,4 @@
+
 <div align="center">
   <p>
     <h1>
@@ -22,7 +23,7 @@
 - [Example](#example)
 
 # Introduction
-When writing [Bonsai Code](https://bonsai.pinyto.de/assembler/) its often hard to structure the code, because Bonsai is missing things like labels, or instructions like mov, and, or, which further increases the codes size. EasyBonsai however adds those features! (See [Features](#features))
+When writing [Bonsai Code](https://bonsai.pinyto.de/assembler/) its often hard to structure the code, because Bonsai is missing things like labels, or instructions like "mov", "and", "or", "cmp", which further increases the codes size. EasyBonsai however adds those features! (See [Features](#features))
 
 Also other than its predecessor EasyBonsai2 has a web-implementation, which allows you to use this in the web too!
 
@@ -49,6 +50,8 @@ lbl.main:
 ; code...
 ; somewhere else in code
 goto lbl.main
+; or with a jmp
+jmp .lbl.main ; The dot is important here!
 ```
 ## Mov
 Mov is used to copy the value of a variable to another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper variable (*Only if the program was ran without the -ah flag, which will automatically determine the address of the helper-variable*)
@@ -69,19 +72,19 @@ mov 1, NULL ; "1" will now be 0
 The and instruction checks wether the value of two given variables is greater than 0.
 ```nasm
 ; Assuming "1" = 3 and "2" = 5
-and 1, 2 	; Both variables hold a value greater than 0
-hlt 		; Programm stops
-jmp 0 		; If one or both of the variables holds a value equal to 0
-			; the program will enter an endless loop
+and 1, 2  ; Both variables hold a value greater than 0
+hlt     ; Programm stops
+jmp 0     ; If one or both of the variables holds a value equal to 0
+      ; the program will enter an endless loop
 ```
 ## Or
-The and instruction checks wether the value of one of two given variables is greater than 0.
+The or instruction checks wether the value of one of two given variables is greater than 0.
 ```nasm
 ; Assuming "1" = 3 and "2" = 0
-or 1, 2 	; One of the variables holds a value greater than 0
-hlt 		; Programm stops
-jmp 0 		; If both of the variables holds a value equal to 0
-			; the program will enter an endless loop
+or 1, 2   ; One of the variables holds a value greater than 0
+hlt     ; Programm stops
+jmp 0     ; If both of the variables holds a value equal to 0
+      ; the program will enter an endless loop
 ```
 ## Relative Jmps
 Sometimes its easier to have jmps that jump to a relative address instead of a static one.
@@ -93,6 +96,27 @@ Sometimes its easier to have jmps that jump to a relative address instead of a s
 4: ;...
 5: ;...
 6: hlt ; jmp goes here.
+```
+## CMP, JE, JL, JG
+To compare two variables you can use cmp. JE is used to jmp somewhere when the two variables are equal, jl if x is less than y, and jg if x is greater than y
+```nasm
+; After execution:
+; "2" will be 1 if "0">"1"
+; "3" will be 1 if "0"<"1"
+; "4" will be 1 if "0"=="1"
+cmp 0, 1
+je .equal
+jl .less
+jg .greater
+greater:
+inc 2
+hlt
+less:
+inc 3
+hlt
+equal:
+inc 4
+hlt
 ```
 
 # Usage
@@ -206,8 +230,8 @@ jmp 68
 
 
 # TODO
-- [ ] Greater/Less than
+- [ ] improve performance <font size="1">(I make use of a lot of recursive function calling, I should reduce that.)</font>
+- [x] ~~Greater/Less than~~
 - [ ] Settings
 - [ ] Bonsai Interpreter
-- [ ] Add option to compile to nasm and execute
 - [ ] Add Lua to allow custom implementation of custom instructions
