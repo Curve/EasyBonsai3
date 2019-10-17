@@ -54,6 +54,17 @@ goto lbl.main
 ; or with a jmp
 jmp .lbl.main ; The dot is important here!
 ```
+## Relative Jmps
+Sometimes its easier to have jmps that jump to a relative address instead of a static one.
+```nasm
+0: ; code...
+1: jmp +5
+2: ;...
+3: ;...
+4: ;...
+5: ;...
+6: hlt ; jmp goes here.
+```
 ## Custom Instructions
 
 ### Mov
@@ -88,17 +99,6 @@ or 1, 2   ; One of the variables holds a value greater than 0
 hlt     ; Programm stops
 jmp 0     ; If both of the variables holds a value equal to 0
       ; the program will enter an endless loop
-```
-### Relative Jmps
-Sometimes its easier to have jmps that jump to a relative address instead of a static one.
-```nasm
-0: ; code...
-1: jmp +5
-2: ;...
-3: ;...
-4: ;...
-5: ;...
-6: hlt ; jmp goes here.
 ```
 ### CMP, JE, JL, JG
 To compare two variables you can use cmp. JE is used to jmp somewhere when the two variables are equal, jl if x is less than y, and jg if x is greater than y
