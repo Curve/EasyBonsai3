@@ -1,4 +1,5 @@
 
+
 <div align="center">
   <p>
     <h1>
@@ -53,7 +54,9 @@ goto lbl.main
 ; or with a jmp
 jmp .lbl.main ; The dot is important here!
 ```
-## Mov
+## Custom Instructions
+
+### Mov
 Mov is used to copy the value of a variable to another, however this cannot be done without any helper-variables in Bonsai, this is why the mov instructions needs a third parameter,  the helper variable (*Only if the program was ran without the -ah flag, which will automatically determine the address of the helper-variable*)
 ```nasm
 ; Variable named "1" will be asgined the value of variable named "2", "3" will be
@@ -68,7 +71,7 @@ mov 1, 2 ; Variable 3 still needs to be initialized but will be auto filled in.
 ; or set a variable to 0!
 mov 1, NULL ; "1" will now be 0
 ```
-## And
+### And
 The and instruction checks wether the value of two given variables is greater than 0.
 ```nasm
 ; Assuming "1" = 3 and "2" = 5
@@ -77,7 +80,7 @@ hlt     ; Programm stops
 jmp 0     ; If one or both of the variables holds a value equal to 0
       ; the program will enter an endless loop
 ```
-## Or
+### Or
 The or instruction checks wether the value of one of two given variables is greater than 0.
 ```nasm
 ; Assuming "1" = 3 and "2" = 0
@@ -86,7 +89,7 @@ hlt     ; Programm stops
 jmp 0     ; If both of the variables holds a value equal to 0
       ; the program will enter an endless loop
 ```
-## Relative Jmps
+### Relative Jmps
 Sometimes its easier to have jmps that jump to a relative address instead of a static one.
 ```nasm
 0: ; code...
@@ -97,7 +100,7 @@ Sometimes its easier to have jmps that jump to a relative address instead of a s
 5: ;...
 6: hlt ; jmp goes here.
 ```
-## CMP, JE, JL, JG
+### CMP, JE, JL, JG
 To compare two variables you can use cmp. JE is used to jmp somewhere when the two variables are equal, jl if x is less than y, and jg if x is greater than y
 ```nasm
 ; After execution:
@@ -119,8 +122,7 @@ inc 4
 hlt
 ```
 
-# Usage
-
+# Usage 
 - Compile/Translate your code
   ```sh
   ./EasyBonsai.exe -i codefile.extension -o outputfile.extension
@@ -133,97 +135,308 @@ hlt
 # Example
 To see how "powerful" (or rather how much simpler) EasyBonsai is I have this example program:
 ```nasm
-or 0, 1 ; if "0" or "1" > 0
-goto clearThem ; clear "0"&"1" and backup "1" in "2"
-goto end
-end:
-mov 1, 2 # 3 ; "0" and "1" were cleared, now move the backup from "2" into "1"
+start:
+cmp 0, 1
+je .equal
+jl .less
+jg .greater
+greater:
+dec 0
+goto start
+less:
+inc 0
+goto start
+equal:
 hlt
-clearThem:
-mov 2, 1#3
-mov 3, NULL
-mov 1, NULL
-mov 0, NULL
-jmp 0
 ```
-All it does is to clear the variables "0" and "1" (if one of them has a value greater than 0) and backups variable "1" in the variable "2", then if "0" and "1" are both equal to zero, it copies the value of "2" to "1".
-While this program only has 12 lines in EasyBonsai, it has 72 in Bonsai.
+All it does is increment/decrement 0 until its equal to 1.
+While this program only has 12 lines in EasyBonsai, it has 282 in Bonsai.
 <details closed>
 
 ```nasm
+jmp 1
+jmp 22
+jmp 13
+jmp 16
+jmp 19
+jmp 6
+dec 0
+jmp 1
+jmp 9
+inc 0
+jmp 1
 jmp 12
-jmp 7
-jmp 4
-jmp 4
-jmp 18
 hlt
-jmp 7
-jmp 33
-jmp 48
-jmp 53
-jmp 58
-jmp 0
-tst 0
-jmp 1
-jmp 15
-tst 1
-jmp 1
-jmp 2
-tst 2
-jmp 21
-jmp 25
-inc 3
-inc 1
-dec 2
-jmp 18
+tst 4
+jmp 12
+jmp 3
 tst 3
-jmp 28
-jmp 31
-dec 3
-inc 2
-jmp 25
-jmp 63
+jmp 4
+jmp 9
+tst 3
+jmp 6
 jmp 5
+jmp 53
+jmp 68
+tst 0
+jmp 27
+jmp 30
+tst 1
+jmp 33
+jmp 41
 tst 1
 jmp 36
-jmp 40
-inc 3
-inc 2
-dec 1
-jmp 33
-tst 3
-jmp 43
-jmp 46
-dec 3
-inc 1
-jmp 40
-jmp 68
-jmp 8
-tst 3
-jmp 51
-jmp 9
-dec 3
-jmp 48
-tst 1
-jmp 56
-jmp 10
-dec 1
-jmp 53
-tst 0
-jmp 61
-jmp 11
-dec 0
-jmp 58
-tst 3
-jmp 66
-jmp 32
-dec 3
-jmp 63
-tst 3
-jmp 71
 jmp 47
+dec 0
+dec 1
+jmp 24
+jmp 83
+jmp 98
+jmp 173
+jmp 178
+jmp 2
+jmp 113
+jmp 128
+jmp 183
+jmp 188
+inc 3
+jmp 2
+jmp 143
+jmp 158
+jmp 193
+jmp 198
+inc 4
+jmp 2
+jmp 203
+jmp 208
+tst 0
+jmp 58
+jmp 62
+inc 2
+inc 3
+dec 0
+jmp 55
+tst 2
+jmp 65
+jmp 23
+dec 2
+inc 0
+jmp 62
+jmp 213
+jmp 218
+tst 1
+jmp 73
+jmp 77
+inc 2
+inc 4
+dec 1
+jmp 70
+tst 2
+jmp 80
+jmp 24
+dec 2
+inc 1
+jmp 77
+jmp 223
+jmp 228
+tst 3
+jmp 88
+jmp 92
+inc 2
+inc 0
 dec 3
-jmp 68
+jmp 85
+tst 2
+jmp 95
+jmp 37
+dec 2
+inc 3
+jmp 92
+jmp 233
+jmp 238
+tst 4
+jmp 103
+jmp 107
+inc 2
+inc 1
+dec 4
+jmp 100
+tst 2
+jmp 110
+jmp 38
+dec 2
+inc 4
+jmp 107
+jmp 243
+jmp 248
+tst 3
+jmp 118
+jmp 122
+inc 2
+inc 0
+dec 3
+jmp 115
+tst 2
+jmp 125
+jmp 42
+dec 2
+inc 3
+jmp 122
+jmp 253
+jmp 258
+tst 4
+jmp 133
+jmp 137
+inc 2
+inc 1
+dec 4
+jmp 130
+tst 2
+jmp 140
+jmp 43
+dec 2
+inc 4
+jmp 137
+jmp 263
+jmp 268
+tst 3
+jmp 148
+jmp 152
+inc 2
+inc 0
+dec 3
+jmp 145
+tst 2
+jmp 155
+jmp 48
+dec 2
+inc 3
+jmp 152
+jmp 273
+jmp 278
+tst 4
+jmp 163
+jmp 167
+inc 2
+inc 1
+dec 4
+jmp 160
+tst 2
+jmp 170
+jmp 49
+dec 2
+inc 4
+jmp 167
+tst 3
+jmp 176
+jmp 39
+dec 3
+jmp 173
+tst 4
+jmp 181
+jmp 40
+dec 4
+jmp 178
+tst 3
+jmp 186
+jmp 44
+dec 3
+jmp 183
+tst 4
+jmp 191
+jmp 45
+dec 4
+jmp 188
+tst 3
+jmp 196
+jmp 50
+dec 3
+jmp 193
+tst 4
+jmp 201
+jmp 51
+dec 4
+jmp 198
+tst 2
+jmp 206
+jmp 54
+dec 2
+jmp 203
+tst 3
+jmp 211
+jmp 55
+dec 3
+jmp 208
+tst 2
+jmp 216
+jmp 69
+dec 2
+jmp 213
+tst 4
+jmp 221
+jmp 70
+dec 4
+jmp 218
+tst 2
+jmp 226
+jmp 84
+dec 2
+jmp 223
+tst 0
+jmp 231
+jmp 85
+dec 0
+jmp 228
+tst 2
+jmp 236
+jmp 99
+dec 2
+jmp 233
+tst 1
+jmp 241
+jmp 100
+dec 1
+jmp 238
+tst 2
+jmp 246
+jmp 114
+dec 2
+jmp 243
+tst 0
+jmp 251
+jmp 115
+dec 0
+jmp 248
+tst 2
+jmp 256
+jmp 129
+dec 2
+jmp 253
+tst 1
+jmp 261
+jmp 130
+dec 1
+jmp 258
+tst 2
+jmp 266
+jmp 144
+dec 2
+jmp 263
+tst 0
+jmp 271
+jmp 145
+dec 0
+jmp 268
+tst 2
+jmp 276
+jmp 159
+dec 2
+jmp 273
+tst 1
+jmp 281
+jmp 160
+dec 1
+jmp 278
 ```
 
 </details>
