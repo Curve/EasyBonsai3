@@ -43,7 +43,7 @@ Web:
 
 # Features
 ## Labels
-Labels are important for structure and are implementet as following in EasyBonsai
+Labels are important for structure and are implemented as following in EasyBonsai
 ```nasm
 ; The name of a label can be everything, no restrictions to special characters or similar.
 lbl.main:
