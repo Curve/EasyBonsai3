@@ -230,7 +230,6 @@ jmp 68
 
 
 # TODO
-- [ ] improve performance <font size="1">(I make use of a lot of recursive function calling, I should reduce that.)</font>
 - [x] ~~Greater/Less than~~
 - [ ] Settings
 - [ ] Bonsai Interpreter
