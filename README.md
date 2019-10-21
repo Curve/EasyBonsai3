@@ -1,5 +1,6 @@
 
 
+
 <div align="center">
   <p>
     <h1>
@@ -444,6 +445,4 @@ jmp 278
 
 # TODO
 - [x] ~~Greater/Less than~~
-- [ ] Settings
-- [ ] Bonsai Interpreter
-- [ ] Add Lua to allow custom implementation of custom instructions
+- [x] ~~Allow custom implementations~~

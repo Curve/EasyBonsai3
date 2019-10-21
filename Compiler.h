@@ -11,6 +11,9 @@ using std::map;
 extern regex easyBonsaiRegex;
 extern regex bonsaiValidationRegex;
 extern regex addyRegex;
+extern regex customInstructionRegex;
+extern regex customCallRegex;
+extern regex RAddyRegex;
 
 template <typename T>
 std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vector2) {
@@ -20,6 +23,8 @@ std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vecto
 
 enum MOD
 {
+	REG,
+	REGS,
 	IFUNC, //! inline func
 	FUNC,  
 	GOTO,  
@@ -67,10 +72,13 @@ private:
 	//! ~~~~~~~
 	//! I know it may not be the best solution to iterate over the code over and over for each implementation but it should work best.
 	//! ~~~~~~~
+	void c_Reg();
+	void c_Funcs();
+	//! ~~
 	void c_Je();
 	void c_Jl();
 	void c_Jg();
-	void c_Funcs();
+	void c_Lbls();
 	//! These use labels so they have to be compiled after wards to prevent complication
 	void c_Or();
 	void c_And();
