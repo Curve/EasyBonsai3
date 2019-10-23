@@ -21,6 +21,12 @@ std::vector<T>& operator +=(std::vector<T>& vector1, const std::vector<T>& vecto
 	return vector1;
 }
 
+struct CustomInstruction
+{
+	string name;
+	vector<string> code;
+};
+
 enum MOD
 {
 	REG,
@@ -63,6 +69,7 @@ private:
 	vector<string> m_ErrorStack;
 	vector<string> m_CurrentCode;
 	map<string, int> m_FuncIndex;
+	map<string ,CustomInstruction> m_Customs;
 	//! ~~~~~
 	//! Compile Hierarchy
 	//! - High Level Implementations First (cuz they will use low level implementations)
@@ -74,6 +81,7 @@ private:
 	//! ~~~~~~~
 	void c_Reg();
 	void c_Funcs();
+	void c_ClearFuncs();
 	//! ~~
 	void c_Je();
 	void c_Jl();

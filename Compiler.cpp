@@ -1,4 +1,5 @@
 #include "Compiler.h"
+#include <functional>
 #include <fstream>
 #include <iostream>
 #include "rang.h"
@@ -11,7 +12,7 @@ regex addyRegex(R"r(^(tst (\d+))|(inc (\d+))|(dec (\d+))|(mov (\d+),\ *(\d+)\ *)
 regex bonsaiValidationRegex(R"r(^(tst \d+)|(jmp \d+)|(inc \d+)|(dec \d+)|(hlt)$)r");
 regex RAddyRegex(R"r((\w+)\ (.*))r");
 regex customCallRegex(R"r(^((\w+) ((\d+\ *,*\ *)*))$)r");
-regex customInstructionRegex(R"r((\.custom (.+)\n([^}]*)\.end))r");
+regex customStartRegex(R"r(\.custom (.+))r");
 
 map<MOD, int> _mods =
 {
@@ -114,15 +115,23 @@ void BonsaiCompiler::determineAddy()
 	{
 		if (addy > biggest) biggest = addy;
 	}
+	int biggest2 = 0;
+	for (auto addy : m_CAddys)
+	{
+		if (addy.second > biggest2) biggest2 = addy.second;
+	}
+
+	if (biggest2 > biggest) biggest = biggest2;
+
 	m_CAddys["ALLOC"] = ++biggest;
 	m_CAddys["CMP1"] = ++biggest;
 	m_CAddys["CMP2"] = ++biggest;
 
-	m_CAddys["R1"] = ++biggest;
-	m_CAddys["R2"] = ++biggest;
-	m_CAddys["R3"] = ++biggest;
-	m_CAddys["R4"] = ++biggest;
-	m_CAddys["R5"] = ++biggest;
+	m_CAddys["$R1"] = ++biggest;
+	m_CAddys["$R2"] = ++biggest;
+	m_CAddys["$R3"] = ++biggest;
+	m_CAddys["$R4"] = ++biggest;
+	m_CAddys["$R5"] = ++biggest;
 }
 
 bool BonsaiCompiler::validateCode()
@@ -142,8 +151,9 @@ bool BonsaiCompiler::validateCode()
 
 bool BonsaiCompiler::compile()
 {
-	determineAddy();
 	c_Funcs();
+	c_Reg();
+	determineAddy();
 	c_Reg();
 
 	c_Je();
@@ -689,7 +699,6 @@ void BonsaiCompiler::c_Reg()
 			pos = data.find(toSearch, pos + replaceStr.size());
 		}
 	};
-
 	static auto isREG = [](string& line, string& name, string& representation)
 	{
 		static const auto _rreg = _mods[REG];
@@ -698,7 +707,7 @@ void BonsaiCompiler::c_Reg()
 		{
 			if (res[_rreg].matched)
 			{
-				name = res[_rreg + 1];
+				name = "$" + res[_rreg + 1].str();
 				representation = res[_rreg + 2];
 				return true;
 			}
@@ -713,7 +722,7 @@ void BonsaiCompiler::c_Reg()
 		{
 			if (res[_rreg].matched)
 			{
-				name = res[_rreg + 1];
+				name = "$" + res[_rreg + 1].str();
 				representation = std::to_string(maxAddy());
 				return true;
 			}
@@ -738,20 +747,75 @@ void BonsaiCompiler::c_Reg()
 		std::smatch res;
 		if (std::regex_match(line, res, RAddyRegex))
 		{
-			auto addys = res[2].str();
-			for (auto reg : m_CAddys)
+			if (line.find("$") != string::npos)
 			{
-				if (addys.find(reg.first) != string::npos)
+				for (auto addy : m_CAddys)
 				{
-					replace(addys, reg.first, std::to_string(reg.second));
-					m_CurrentCode[i] = res[1].str() + " " + addys;
+					if (line.find(addy.first) != string::npos)
+					{
+						replace(line, addy.first, std::to_string(addy.second));
+						m_CurrentCode[i] = line;
+					}
 				}
 			}
 		}
 	}
 }
+void BonsaiCompiler::c_ClearFuncs()
+{
+	string functionName;
+	vector<string> c_Code;
+	bool currentlyInFunction = false;
+	int start_I = 0;
+	int end_I = 0;
+	for (int i = 0; m_CurrentCode.size() > i; i++)
+	{
+		std::smatch res;
+		auto line = m_CurrentCode[i];
+		if (!currentlyInFunction && std::regex_match(line, res, customStartRegex))
+		{
+			start_I = i;
+			currentlyInFunction = true;
+			functionName = res[1];
+			c_Code.clear();
+			continue;
+		}
+		if (currentlyInFunction && line.substr(0, 4) == ".end")
+		{
+			currentlyInFunction = false;
+
+			CustomInstruction custom;
+			custom.name = functionName;
+			custom.code = c_Code;
+
+			m_Customs.insert({ functionName, custom });
+			end_I = i;
+
+			m_CurrentCode.erase(m_CurrentCode.begin() + start_I, m_CurrentCode.begin() + end_I + 1);
+			c_ClearFuncs();
+		}
+		if (currentlyInFunction)
+		{
+			c_Code.push_back(line);
+		}
+	}
+}
 void BonsaiCompiler::c_Funcs()
 {
+	static auto replace = [](std::string & data, std::string toSearch, std::string replaceStr)
+	{
+		// Get the first occurrence
+		size_t pos = data.find(toSearch);
+
+		// Repeat till end is reached
+		while (pos != std::string::npos)
+		{
+			// Replace this occurrence of Sub String
+			data.replace(pos, toSearch.size(), replaceStr);
+			// Get the next occurrence from the current position
+			pos = data.find(toSearch, pos + replaceStr.size());
+		}
+	};
 	static auto split = [](const std::string& str, const std::string& delimiter)
 	{
 		std::vector<std::string> strings;
@@ -764,50 +828,11 @@ void BonsaiCompiler::c_Funcs()
 			prev = pos + 1;
 		}
 
+		// To get the last substring (or only, if delimiter is not found)
 		strings.push_back(str.substr(prev));
 
 		return strings;
 	};
-
-	vector<std::pair<string, string>> customImpl;
-
-	string completeCode;
-	for (auto line : m_CurrentCode)
-	{
-		completeCode.append(line + "\n");
-
-		std::smatch res;
-		if (std::regex_search(completeCode, res, customInstructionRegex))
-		{
-			auto name = res[2];
-			auto code = res[3];
-			customImpl.push_back(std::make_pair(name, code));
-			completeCode = std::regex_replace(completeCode, customInstructionRegex, "");
-		}
-	}
-
-	m_CurrentCode.clear();
-	for (auto line : split(completeCode, "\n"))
-	{
-		if (line.size() > 1)
-			m_CurrentCode.push_back(line);
-	}
-						// addy and len
-	map<string, std::pair<int, int>> customs;
-
-	for (auto impl : customImpl)
-	{
-		auto addy = m_CurrentCode.size();
-		int len = 0;
-		for (auto line : split(impl.second, "\n"))
-		{
-			m_CurrentCode.push_back(line);
-			len++;
-		}
-		customs.insert({ impl.first, std::make_pair(addy, len) });
-	}
-
-	//! At this point all the functions are appended to the code. We can now redirect custom Instruction calls
 	static auto isCALL = [this](string& line, string& name, string& params)
 	{
 		std::smatch res;
@@ -823,20 +848,47 @@ void BonsaiCompiler::c_Funcs()
 		return false;
 	};
 
+	c_ClearFuncs();
+
 	string name, params;
 	for (int i = 0; m_CurrentCode.size() > i; i++)
 	{
 		auto line = m_CurrentCode[i];
-		if (isCALL(line, name, params))
+		if (isCALL(line, name, params) && m_Customs.find(name) != m_Customs.end())
 		{
 			int allocAddy = m_CurrentCode.size();
 			m_CurrentCode[i] = "jmp " + std::to_string(allocAddy);
 			vector<string> func;
-			//TODO: Move Registers in func
-			//TODO: Then jmp to the custom code based on the addy which is saved in customs.
-			//! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			//TODO: Replace _back and _backp in the custom Function!
-			//! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			vector<string> parameter;
+			auto splitted = split(params, ",");
+
+			if (splitted.size() <= 1)
+			{
+				parameter = { params };
+			}
+			else
+			{
+				for (int x = 0; splitted.size() > x; x++)
+				{
+					parameter.push_back(splitted[x]);
+				}
+			}
+
+			for (int x = 0; parameter.size() > x; x++)
+			{
+				func.push_back("mov " + ("$R" + std::to_string(x+1)) + ", " + parameter[x]);
+			}
+
+			for (auto line : m_Customs.at(name).code)
+			{
+				if (line.find("$.back+1") != string::npos)
+					replace(line, "$.back+1", std::to_string(i + 2));
+				if (line.find("$.back") != string::npos)
+					replace(line, "$.back", std::to_string(i + 1));
+				func.push_back(line);
+			}
+			//TODO: Move registers back
+			//! Replace the jmp backs to a detour which moves all the registers back to the original variables.
 			m_CurrentCode += func;
 		}
 	}
