@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+<script type="text/javascript" src="easybonsai.js"></script>
+<script>
+	alert("Please run this on a http server, otherwise the WebAssembly file wont be found!");
+function compile()
+        {
+            var code = document.getElementById("code").value;
+            var compiled = Module.getCode(code, true);
+            var finalCode = "";
+            for(var i = 0; compiled.size() > i; i++) {
+                finalCode += compiled.get(i) + "\n";
+            }
+            document.getElementById("res").value = finalCode;
+        }
+</script>
+</head>
+<body>
+
+<h1>EasyBonsai2 - WebDemo</h1>
+
+<textarea name="Code" id="code" cols="40" rows="30"></textarea>
+<button onclick="compile()">Compile</button>
+<textarea disabled name="Result" id="res" cols="40" rows="30"></textarea>
+
+</body>
+</html>
