@@ -16,7 +16,7 @@
 *Changes to EasyBonsai2: Heavily improved code, which also results in faster compile-times!*
 
 # Introduction
-EasyBonsai is a extension for [Bonsai](https://bonsai.pinyto.de/assembler/)  which adds more advanced instructions and is also compieable to Bonsai.
+EasyBonsai is a extension for [Bonsai](https://bonsai.pinyto.de/assembler/)  which adds more advanced instructions and is also compileable to Bonsai.
 # Install
 <b>Important: </b>
 - Please compile with C++17 or above
