@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Console.h"
 #include "Compiler.h"
+#include <filesystem>
 #include "belegpp/belegpp.h"
 
 using namespace beleg::extensions::strings;
@@ -30,7 +31,7 @@ int main(int argc, char** cargs)
 
 	if (argc <= 1)
 	{
-		Console::error << "Too few arguments provided";
+		Console::error << "Too few arguments provided" << Console::endl;
 		return 1;
 	}
 
@@ -52,10 +53,19 @@ int main(int argc, char** cargs)
 
 	if (!(args | containsKey("input")))
 	{
-		Console::error << "No input specified";
+		Console::error << "No input specified" << Console::endl;;
+		return 1;
+	}
+	else if (!std::filesystem::exists(args["input"]))
+	{
+		Console::error << "No input specified" << Console::endl;;
 		return 1;
 	}
 	if (!(args | containsKey("output")))
+	{
+		args["output"] = "output.bon";
+	}
+	else if (!args["output"])
 	{
 		args["output"] = "output.bon";
 	}
