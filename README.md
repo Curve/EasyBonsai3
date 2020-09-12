@@ -51,7 +51,7 @@ Assembler-like compare instruction, that will compare two memory-cells.
 3: jg 30 ; will jump to line 30 if [0] > [1]
 ```
 ### Mov
-Allows you to copy the memory cell of one into another, also allows you to just set one memory-cell to zero.
+Allows you to copy the content of one memory-cell into another, also allows you to just set one memory-cell to zero.
 ```nasm
 0: mov 0, 1 ; [0] is now equal to [1]
 1: mov 1, NULL ; [1] is now 0.
