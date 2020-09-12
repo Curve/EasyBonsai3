@@ -167,7 +167,7 @@ namespace EasyBonsai
 			{ std::regex(R"r(^mov (\d+),\ *(\d+)\ *$)r"), 2 }
 		});
 
-	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, TST = 0, JMP, INC, DEC };
+	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, TST = 0, JMP, INC, DEC, HLT };
 
 	class Compiler
 	{
@@ -278,7 +278,7 @@ namespace EasyBonsai
 			{
 				auto index = toDelete[it] - it;
 
-				for (auto& label : definedLabels)
+				for (const auto& label : definedLabels)
 				{
 					if (label.second >= index)
 					{

@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Console.h"
 #include "Compiler.h"
+#include "Executor.h"
 #include <filesystem>
 #include "belegpp/belegpp.h"
 
@@ -25,6 +26,19 @@ EMSCRIPTEN_BINDINGS(mygetcode) {
 #endif
 
 #ifndef BONSAI_WEB
+inline std::vector<std::string> readFileToVector(const std::string& filename)
+{
+	std::vector<std::string> result;
+	std::ifstream inputFile(filename);
+	std::string currentLine;
+	while (std::getline(inputFile, currentLine))
+	{
+		if (currentLine.length() >= 1 && currentLine.substr(0, 1) == ";") continue;
+		result.push_back(currentLine);
+	}
+	return result;
+}
+
 int main(int argc, char** cargs)
 {
 	std::map<std::string, std::string> args;
@@ -51,7 +65,85 @@ int main(int argc, char** cargs)
 		}
 	}
 
-	if (!(args | containsKey("input")))
+	if (args | containsKey("run"))
+	{
+		EasyBonsai::Executor executor;
+		if (!std::filesystem::exists(args["run"]))
+		{
+			Console::error << "Sepcified file not found" << Console::endl;;
+			return 1;
+		}
+
+		Console::info << "Running " << args["run"] << Console::endl;
+
+		auto input = readFileToVector(args["run"]);
+		if (!executor.load(input))
+		{
+			for (auto err : executor.getErrorstack())
+			{
+				Console::error << err << Console::endl;
+			}
+			return 1;
+		}
+
+		if (args | containsKey("setVars"))
+		{
+			auto setVars = args["setVars"];
+			if (!(setVars | contains(":")))
+			{
+				Console::error << "Invalid setVars format" << Console::endl;
+				return 1;
+			}
+			if (setVars | contains(","))
+			{
+				for (auto var : (setVars | split(",")))
+				{
+					if (var | contains(":"))
+					{
+						auto splitted = var | split(":");
+						if (std::regex_match(splitted[0], std::regex(R"r(-?[0-9]+)r")) && std::regex_match(splitted[1], std::regex(R"r(-?[0-9]+)r")))
+						{
+							Console::debug << "Setting Register $" << splitted[0] << " to " << splitted[1] << Console::endl;
+							executor.setRegister(std::stoi(splitted[0]), std::stoi(splitted[1]));
+						}
+					}
+				}
+			}
+			else
+			{
+				auto splitted = setVars | split(":");
+				if (std::regex_match(splitted[0], std::regex(R"r(-?[0-9]+)r")) && std::regex_match(splitted[1], std::regex(R"r(-?[0-9]+)r")))
+				{
+					Console::debug << "Setting Register $" << splitted[0] << " to " << splitted[1] << Console::endl;
+					executor.setRegister(std::stoi(splitted[0]), std::stoi(splitted[1]));
+				}
+			}
+		}
+
+		auto start_time = std::chrono::high_resolution_clock::now();
+		auto executionSuccess = executor.run();
+		auto end_time = std::chrono::high_resolution_clock::now();
+
+		if (!executionSuccess)
+		{
+			for (auto err : executor.getErrorstack())
+			{
+				Console::error << err << Console::endl;
+			}
+			return 1;
+		}
+
+		Console::info << "Execution finished in " << (end_time - start_time) / std::chrono::milliseconds(1) << "ms!" << Console::endl;
+
+		Console::info << "Registers after execution: " << Console::endl;
+		for (auto reg : executor.getRegisters())
+		{
+			Console::info << "[$" << reg.first << "]: " << reg.second << Console::endl;
+		}
+
+		return 0;
+	}
+	else if (!(args | containsKey("input")))
 	{
 		Console::error << "No input specified" << Console::endl;;
 		return 1;
@@ -102,17 +194,7 @@ int main(int argc, char** cargs)
 	Console::info << "User defined variables: " << (preDefinedVars | join(", ")) << Console::endl;
 
 	auto compiler = EasyBonsai::Compiler();
-
-	std::vector<std::string> input;
-	{
-		std::ifstream inputFile(args["input"]);
-		std::string currentLine;
-		while (std::getline(inputFile, currentLine))
-		{
-			if (currentLine.length() >= 1 && currentLine.substr(0, 1) == ";") continue;
-			input.push_back(currentLine);
-		}
-	}
+	auto input = readFileToVector(args["input"]);
 
 	auto start_time = std::chrono::high_resolution_clock::now();
 	auto result = compiler.compile(input, preDefinedVars);
