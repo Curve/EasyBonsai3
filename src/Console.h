@@ -1,7 +1,9 @@
 #pragma once
 #ifndef BONSAI_WEB
 #include "belegpp/belegpp.h"
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 #include <iostream>
 #include <sstream>
 #include <string>
