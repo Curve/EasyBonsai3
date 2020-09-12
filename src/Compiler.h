@@ -280,7 +280,7 @@ namespace EasyBonsai
 
 				for (auto& label : definedLabels)
 				{
-					if (label.second >= it)
+					if (label.second >= index)
 					{
 						definedLabels.at(label.first) = label.second - 1;
 					}
