@@ -91,22 +91,43 @@ Allows you to give memory-cells names.
 # Usage
 - Compile your code
 	```bash
-	> ./EasyBonsai2.exe --input input.bon
-	> ./EasyBonsai2.exe --input input.bon --output output.bon
-	> ./EasyBonsai2.exe --input input.bon --output output.bon --usedVars 1
-	> ./EasyBonsai2.exe --input input.bon --output output.bon --usedVars 1,2,3
+	> ./EasyBonsai3-Linux --input input.bon
+	> ./EasyBonsai3-Linux --input input.bon --output output.bon
+	> ./EasyBonsai3-Linux --input input.bon --output output.bon --usedVars 1
+	> ./EasyBonsai3-Linux --input input.bon --output output.bon --usedVars 1,2,3
 	```
-- Example Output:
+	- Example Output:
+		```bash
+		[02:16:38] [EasyBonsai3] Using input file: input.txt
+		[02:16:38] [EasyBonsai3] Using output file: output.bon
+		[02:16:38] [EasyBonsai3] User defined variables:
+		[02:16:38] [Debug] Detected Labels: { [equal,8], [greater,2], [less,5], [start,0] }
+		[02:16:38] [Debug] Detected Address-Macros: {  }
+		[02:16:38] [Debug] Detected Used-Addresses: { 0, 1 }
+		[02:16:38] [Debug] Setting Help-Register to [$0: 2]
+		[02:16:38] [Debug] Setting Compare-Registers to [$1: 3] and [$2: 4]
+		[02:16:38] [EasyBonsai3] Additional defined registers: 3, 4, 2
+		[02:16:38] [EasyBonsai3] Compilation finished in 104ms!
+		```
+	*usedVars* will tell the compiler to not use the provided vars as registers, you will only need to define this, if you don't use those memory-cells in your code and don't want them to be used.
+
+- Run your code
+		*Why? Because running the code in the web version is often times slower, and for bigger code you may want faster execution times*
 	```bash
-	[02:16:38] [EasyBonsai3] Using input file: input.txt
-	[02:16:38] [EasyBonsai3] Using output file: output.bon
-	[02:16:38] [EasyBonsai3] User defined variables:
-	[02:16:38] [Debug] Detected Labels: { [equal,8], [greater,2], [less,5], [start,0] }
-	[02:16:38] [Debug] Detected Address-Macros: {  }
-	[02:16:38] [Debug] Detected Used-Addresses: { 0, 1 }
-	[02:16:38] [Debug] Setting Help-Register to [$0: 2]
-	[02:16:38] [Debug] Setting Compare-Registers to [$1: 3] and [$2: 4]
-	[02:16:38] [EasyBonsai3] Additional defined registers: 3, 4, 2
-	[02:16:38] [EasyBonsai3] Compilation finished in 104ms!
+	> ./EasyBonsai3-Linux --run output.bon
+	> ./EasyBonsai3-Linux --run outbut.bon --setVars 0:0,1:100
 	```
-*usedVars* will tell the compiler to not use the provided vars as registers, you will only need to define this, if you don't use those memory-cells in your code and don't want them to be used.
+	*setVars* usage: `register:value`, it will set the provided register to the value provided before running the code.
+	- Example Output:
+		```bash
+		[19:56:25] [EasyBonsai3] Running output.bon
+		[19:56:26] [Debug] Setting Register $0 to 0
+		[19:56:26] [Debug] Setting Register $1 to 100
+		[19:56:26] [EasyBonsai3] Execution finished in 262ms!
+		[19:56:26] [EasyBonsai3] Registers after execution:
+		[19:56:26] [EasyBonsai3] [$0]: 100
+		[19:56:26] [EasyBonsai3] [$1]: 100
+		[19:56:26] [EasyBonsai3] [$2]: 0
+		[19:56:26] [EasyBonsai3] [$3]: 0
+		[19:56:26] [EasyBonsai3] [$4]: 1
+		```
