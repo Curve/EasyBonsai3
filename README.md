@@ -111,8 +111,8 @@ Allows you to give memory-cells names.
 		```
 	*usedVars* will tell the compiler to not use the provided vars as registers, you will only need to define this, if you don't use those memory-cells in your code and don't want them to be used.
 
-- Run your code
-		*Why? Because running the code in the web version is often times slower, and for bigger code you may want faster execution times*
+- Run your code  
+	*Why? Because running the code in the web version is often times slower, and for bigger code you may want faster execution times*
 	```bash
 	> ./EasyBonsai3-Linux --run output.bon
 	> ./EasyBonsai3-Linux --run outbut.bon --setVars 0:0,1:100
