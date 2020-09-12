@@ -1,0 +1,3 @@
+[submodule "src/belegpp"]
+	path = src/belegpp
+	url = https://github.com/belegpp/belegpp
