@@ -580,6 +580,18 @@ namespace EasyBonsai
 				}
 			}
 		}
+		void handleRJMPInstruction()
+		{
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (easyBonsaiRegex.matches<JMPR>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<JMPR, 1, std::int32_t>(line);
+					line = "jmp " + std::to_string(i + args[0]);
+				}
+			}
+		}
 	public:
 		Compiler() {}
 		std::pair<bool, std::vector<std::string>> compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
@@ -604,6 +616,7 @@ namespace EasyBonsai
 			handleOrInstruction();
 
 			handleGotoInstruction();
+			handleRJMPInstruction();
 
 			return { true, code };
 		}
