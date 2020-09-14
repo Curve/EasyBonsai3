@@ -26,7 +26,7 @@ Windows/Linux:
 
 Web:
 - Compile with emscripten
-  ```em++ main.cpp -D BONSAI_WEB -std=c++17 -Wno-narrowing --bind```  
+  ```em++ main.cpp -D BONSAI_WEB -std=c++17 --bind```  
 # Features
 - [Realtive Jumps](#relative-jmps)
 - [Compare (cmp, je, jg, jl)](#compare)
