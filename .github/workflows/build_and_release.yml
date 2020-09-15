@@ -2,13 +2,17 @@ on: push
 name: Build and release on push
 jobs:
   build-Windows:
-    runs-on: Windows2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
+      - name: Choco Install llvm  
+        uses: crazy-max/ghaction-chocolatey@v1
+        with: 
+          args: install llvm -y
       - name: Compile binaries
-        run: start cmd.exe /c clang++ ./src/main.cpp -std=c++17 -O3 --output EasyBonsai3-Win.exe
+        run: refreshenv && clang++ /src/main.cpp -std=c++17 -O3 --output EasyBonsai3-Win.exe
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
         with:
