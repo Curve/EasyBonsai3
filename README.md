@@ -1,3 +1,4 @@
+
 <div align="center">
   <p>
     <h1>
@@ -34,6 +35,8 @@ Web:
 - [And, Or](#and--or)
 - [Goto (+ Labels)](#labels--goto)
 - [Variable naming](#variable-naming)
+- [Addition and Substraction](#sub--dec)
+- [Increase/Decrease by Value](#inc--dec)
 # Examples
 ### Relative Jmps
 Allows you to jump relatively (This will skip Reg-Instructions aswell as Label-Definitions)
@@ -87,6 +90,22 @@ Allows you to give memory-cells names.
 2: dec TEST ; will decrease memory-cell [0]
 3: jmp TEST ; this will **not** work, because jmp instructions cant access memory-cells 
 3: hlt
+```
+### Sub / Dec
+Allows you to perform simple addition and substraction with memory-cells.
+```nasm
+0: add 0, 1 ; will add the value of memory-cell [1] to memory-cell [0]
+1: hlt
+```
+```nasm
+0: sub 0, 1 ; will substract the value of memory-cell[1] from memory-cell [0]
+1: hlt
+```
+### Inc / Dec
+Allows you to increase a memory-cell by a given value
+```nasm
+0: inc 0, 10 ; will increase memory-cell [0] by 10
+0: dec 1, 5  ; will decrease memory-cell [1] by 5
 ```
 # Usage
 - Compile your code

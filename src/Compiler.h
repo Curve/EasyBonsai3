@@ -20,6 +20,7 @@ namespace EasyBonsai
 				std::regex regex;
 				std::uint32_t argCount;
 				bool isUseableAddy = true;
+				std::vector<std::uint32_t> ignoredAddys;
 			};
 		private:
 			std::vector<Command> commands;
@@ -72,6 +73,8 @@ namespace EasyBonsai
 					{
 						for (int i = 1; command.argCount >= i; i++)
 						{
+							if (command.ignoredAddys | contains(i))
+								continue;
 							if constexpr (std::is_arithmetic<ReturnType>::value)
 							{
 								if (std::regex_match(res[i].str(), std::regex(R"r(-?[0-9]+)r")))
@@ -164,10 +167,14 @@ namespace EasyBonsai
 			{ std::regex(R"r(^or (\d+)\ *,\ *(\d+)$)r"), 2 },
 			{ std::regex(R"r(^cmp (\d+)\ *,\ *(\d+)$)r"), 2 },
 			{ std::regex(R"r(^and (\d+)\ *,\ *(\d+)$)r"), 2 },
-			{ std::regex(R"r(^mov (\d+),\ *(\d+)\ *$)r"), 2 }
+			{ std::regex(R"r(^mov (\d+),\ *(\d+)\ *$)r"), 2 },
+			{ std::regex(R"r(^add (\d+),\ *(\d+)\ *$)r"), 2 },
+			{ std::regex(R"r(^sub (\d+),\ *(\d+)\ *$)r"), 2 },
+			{ std::regex(R"r(^inc (\d+),\ *(\d+)\ *$)r"), 2, true, {2} },
+			{ std::regex(R"r(^dec (\d+),\ *(\d+)\ *$)r"), 2, true, {2} }
 		});
 
-	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, TST = 0, JMP, INC, DEC, HLT };
+	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, ADD, SUB, VINC, VDEC, TST = 0, JMP, INC, DEC, HLT };
 
 	class Compiler
 	{
@@ -176,8 +183,8 @@ namespace EasyBonsai
 
 		std::vector<std::string> errorStack;
 
-		std::string helpRegister;
 		std::string cmpRegisters[2];
+		std::string helpRegisters[2];
 		std::vector<std::uint32_t> knownAddresses;
 		std::map<std::string, std::uint32_t> definedLabels;
 		std::map<std::string, std::uint32_t> customAdresses;
@@ -227,15 +234,18 @@ namespace EasyBonsai
 #ifndef BONSAI_WEB
 			Console::debug << "Detected Used-Addresses: { " << (knownAddresses | join(", ")) << " }" << Console::endl;
 #endif
-			auto maxRegister = *std::max_element(knownAddresses.begin(), knownAddresses.end());
+			std::uint32_t maxRegister = 0;
+			if (knownAddresses.size() > 0)
+				maxRegister = *std::max_element(knownAddresses.begin(), knownAddresses.end());
 
-			helpRegister = std::to_string(maxRegister + 1);
-			cmpRegisters[0] = std::to_string(maxRegister + 2);
-			cmpRegisters[1] = std::to_string(maxRegister + 3);
+			helpRegisters[0] = std::to_string(maxRegister + 1);
+			helpRegisters[1] = std::to_string(maxRegister + 2);
+			cmpRegisters[0] = std::to_string(maxRegister + 3);
+			cmpRegisters[1] = std::to_string(maxRegister + 4);
 
 #ifndef BONSAI_WEB
-			Console::debug << "Setting Help-Register to [$0: " << helpRegister << "]" << Console::endl;
-			Console::debug << "Setting Compare-Registers to [$1: " << cmpRegisters[0] << "] and [$2: " << cmpRegisters[1] << "]" << Console::endl;
+			Console::debug << "Setting Help-Registers to [$0: " << helpRegisters[0] << "] and [$2: " << helpRegisters[1] << "]" << Console::endl;
+			Console::debug << "Setting Compare-Registers to [$2: " << cmpRegisters[0] << "] and [$3: " << cmpRegisters[1] << "]" << Console::endl;
 #endif
 		}
 		void detectMacrosAndLabels()
@@ -303,7 +313,7 @@ namespace EasyBonsai
 					if (bonsaiRegex.matches<JMP>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
 					{
 						auto args = bonsaiRegex.getArguments<JMP, 1, std::uint32_t>(line);
-							line = "jmp " + std::to_string(args[0] - 1);
+						line = "jmp " + std::to_string(args[0] - 1);
 					}
 					else if (easyBonsaiRegex.matches<JE>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
 					{
@@ -451,6 +461,85 @@ namespace EasyBonsai
 				}
 			}
 		}
+		void handleMathInstruction()
+		{
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (easyBonsaiRegex.matches<SUB>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<SUB, 2>(line);
+
+					auto functionStart = code.size();
+					auto continueExec = std::to_string(i + 1);
+
+					line = "jmp " + std::to_string(functionStart);
+					std::vector<std::string> subFunc =
+					{
+						/*0*/"mov " + helpRegisters[1] + ", " + args[1],
+						/*1*/"tst " + helpRegisters[1],
+						/*2*/"jmp " + std::to_string(functionStart + 4),
+						/*3*/"jmp " + continueExec,
+						/*4*/"dec " + args[0],
+						/*4*/"dec " + helpRegisters[1],
+						/*5*/"jmp " + std::to_string(functionStart + 1)
+					};
+					code.insert(code.end(), subFunc.begin(), subFunc.end());
+				}
+				else if (easyBonsaiRegex.matches<ADD>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<ADD, 2>(line);
+
+					auto functionStart = code.size();
+					auto continueExec = std::to_string(i + 1);
+
+					line = "jmp " + std::to_string(functionStart);
+					std::vector<std::string> addFunc =
+					{
+						/*0*/"mov " + helpRegisters[1] + "," + args[1],
+						/*1*/"tst " + helpRegisters[1],
+						/*2*/"jmp " + std::to_string(functionStart + 4),
+						/*3*/"jmp " + continueExec,
+						/*4*/"inc " + args[0],
+						/*5*/"dec " + helpRegisters[1],
+						/*6*/"jmp " + std::to_string(functionStart + 1)
+					};
+					code.insert(code.end(), addFunc.begin(), addFunc.end());
+				}
+				else if (easyBonsaiRegex.matches<VINC>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<VINC, 2, std::uint32_t>(line);
+
+					auto functionStart = code.size();
+					auto continueExec = std::to_string(i + 1);
+
+					line = "jmp " + std::to_string(functionStart);
+					std::vector<std::string> incFunc;
+					for (int i = 0; args[1] > i; i++)
+					{
+						incFunc.push_back("inc " + std::to_string(args[0]));
+					}
+					incFunc.push_back("jmp " + continueExec);
+					code.insert(code.end(), incFunc.begin(), incFunc.end());
+				}
+				else if (easyBonsaiRegex.matches<VDEC>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<VDEC, 2, std::uint32_t>(line);
+
+					auto functionStart = code.size();
+					auto continueExec = std::to_string(i + 1);
+
+					line = "jmp " + std::to_string(functionStart);
+					std::vector<std::string> decFunc;
+					for (int i = 0; args[1] > i; i++)
+					{
+						decFunc.push_back("dec " + std::to_string(args[0]));
+					}
+					decFunc.push_back("jmp " + continueExec);
+					code.insert(code.end(), decFunc.begin(), decFunc.end());
+				}
+			}
+		}
 		void handleMovInstruction()
 		{
 			for (int i = 0; code.size() > i; i++)
@@ -466,19 +555,19 @@ namespace EasyBonsai
 					line = "jmp " + std::to_string(functionStart);
 					std::vector<std::string> movFunc =
 					{
-						/*00*/"mov " + helpRegister + ", NULL",
+						/*00*/"mov " + helpRegisters[0] + ", NULL",
 						/*01*/"mov " + args[0] + ", NULL",
 						/*02*/"tst " + args[1], /*start*/
 						/*03*/"jmp " + std::to_string(functionStart + 5),
 						/*04*/"jmp " + std::to_string(functionStart + 9),
-						/*05*/"inc " + helpRegister, /*bNotNull*/
+						/*05*/"inc " + helpRegisters[0], /*bNotNull*/
 						/*06*/"inc " + args[0],
 						/*07*/"dec " + args[1],
 						/*08*/"jmp " + std::to_string(functionStart + 2),
-						/*09*/"tst " + helpRegister, /*bNull*/
+						/*09*/"tst " + helpRegisters[0], /*bNull*/
 						/*10*/"jmp " + std::to_string(functionStart + 12),
 						/*11*/"jmp " + continueExec,
-						/*12*/"dec " + helpRegister, /*restore*/
+						/*12*/"dec " + helpRegisters[0], /*restore*/
 						/*13*/"inc " + args[1],
 						/*14*/"jmp " + std::to_string(functionStart + 9)
 					};
@@ -610,6 +699,7 @@ namespace EasyBonsai
 
 			detectUsedAddresses();
 
+			handleMathInstruction();
 			handleCmpInstruction();
 			handleMovInstruction();
 			handleAndInstruction();
@@ -620,9 +710,9 @@ namespace EasyBonsai
 
 			return { true, code };
 		}
-		std::array<std::uint32_t, 3> getNeededRegisters()
+		std::array<std::uint32_t, 4> getNeededRegisters()
 		{
-			return { (std::uint32_t)std::stoi(cmpRegisters[0]), (std::uint32_t)std::stoi(cmpRegisters[1]), (std::uint32_t)std::stoi(helpRegister) };
+			return { (std::uint32_t)std::stoi(cmpRegisters[0]), (std::uint32_t)std::stoi(cmpRegisters[1]), (std::uint32_t)std::stoi(helpRegisters[0]), (std::uint32_t)std::stoi(helpRegisters[1]) };
 		}
 	};
 }
