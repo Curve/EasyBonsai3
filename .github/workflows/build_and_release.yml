@@ -12,7 +12,7 @@ jobs:
         with:
           args: install llvm -y
       - name: Compile binaries
-        run: start cmd.exe /c clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Win.exe
+        run: start cmd.exe /c clang++ ./src/main.cpp -std=c++17 -O3 --output EasyBonsai3-Win.exe
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
         with:
