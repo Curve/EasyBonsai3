@@ -35,7 +35,7 @@ Web:
 - [And, Or](#and--or)
 - [Goto (+ Labels)](#labels--goto)
 - [Variable naming](#variable-naming)
-- [Addition and Substraction](#sub--dec)
+- [Addition and Substraction](#add--sub)
 - [Increase/Decrease by Value](#inc--dec)
 # Examples
 ### Relative Jmps
@@ -91,7 +91,7 @@ Allows you to give memory-cells names.
 3: jmp TEST ; this will **not** work, because jmp instructions cant access memory-cells 
 3: hlt
 ```
-### Sub / Dec
+### Add / Sub
 Allows you to perform simple addition and substraction with memory-cells.
 ```nasm
 0: add 0, 1 ; will add the value of memory-cell [1] to memory-cell [0]
