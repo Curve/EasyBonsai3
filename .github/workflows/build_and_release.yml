@@ -44,7 +44,7 @@ jobs:
         with:
           submodules: 'true'
       - name: Install Emscripten
-        run: sudo apt-get update -y && sudo apt-get install -yq clang-3.4 && sudo apt-get install -yq emscripten
+        run: sudo apt-get update -y && sudo apt-get install -yq llvm && sudo apt-get install -yq emscripten
       - name: Run Emscripten once
         run: em++
       - name: Compile binaries
