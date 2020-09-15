@@ -10,7 +10,7 @@ jobs:
       - name: Choco Install llvm
         uses: crazy-max/ghaction-chocolatey@v1
         with:
-          args: install llvm
+          args: install llvm -y
       - name: Compile binaries
         run: clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Win.exe
       - name: Update Release
@@ -41,6 +41,8 @@ jobs:
           submodules: 'true'
       - name: Install Emscripten
         run: sudo apt-get update -y && sudo apt-get install -yq emscripten
+      - name: Run Emscripten once
+        run: em++
       - name: Compile binaries
         run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
       - name: Zip-Files
