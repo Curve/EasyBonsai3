@@ -12,7 +12,7 @@ jobs:
         with: 
           args: install llvm -y
       - name: Compile binaries
-        run: refreshenv && clang++ /src/main.cpp -std=c++17 -O3 --output EasyBonsai3-Win.exe
+        run: refreshenv && clang++.exe /src/main.cpp -std=c++17 -O3 --output EasyBonsai3-Win.exe
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
         with:
@@ -44,7 +44,7 @@ jobs:
         with:
           submodules: 'true'
       - name: Install Emscripten
-        run: sudo apt-get update -y && sudo apt-get install -yq emscripten
+        run: sudo apt-get update -y && sudo apt-get install -yq clang && sudo apt-get install -yq emscripten
       - name: Run Emscripten once
         run: em++
       - name: Compile binaries
