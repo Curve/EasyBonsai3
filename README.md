@@ -8,8 +8,11 @@
     <h4>A project that aims to simplify and improve Bonsai</h4>
   </p>
   <p>
-    <a href="https://github.com/Git-Curve/EasyBonsai2/blob/master/LICENSE">
-      <img src="https://img.shields.io/github/license/Git-Curve/EasyBonsai2.svg?style=flat-square" alt="License" />
+    <a href="https://github.com/Curve/EasyBonsai3/blob/master/LICENSE">
+      <img src="https://img.shields.io/github/license/Git-Curve/EasyBonsai3.svg?style=for-the-badge" alt="License" />
+    </a>
+    <a href="https://github.com/Curve/EasyBonsai3/actions?query=workflow%3A%22Build+and+release+on+push%22">
+      <img src="https://img.shields.io/github/workflow/status/Curve/EasyBonsai3/Build%20and%20release%20on%20push?style=for-the-badge" alt="Builds" />
     </a>
   </p>
 </div>
@@ -35,7 +38,7 @@ Web:
 - [And, Or](#and--or)
 - [Goto (+ Labels)](#labels--goto)
 - [Variable naming](#variable-naming)
-- [Addition and Substraction](#add--sub)
+- [Addition and Subtraction](#add--sub)
 - [Increase/Decrease by Value](#inc--dec)
 # Examples
 ### Relative Jmps
@@ -92,13 +95,13 @@ Allows you to give memory-cells names.
 3: hlt
 ```
 ### Add / Sub
-Allows you to perform simple addition and substraction with memory-cells.
+Allows you to perform simple addition and subtraction with memory-cells.
 ```nasm
 0: add 0, 1 ; will add the value of memory-cell [1] to memory-cell [0]
 1: hlt
 ```
 ```nasm
-0: sub 0, 1 ; will substract the value of memory-cell[1] from memory-cell [0]
+0: sub 0, 1 ; will subtract the value of memory-cell[1] from memory-cell [0]
 1: hlt
 ```
 ### Inc / Dec
