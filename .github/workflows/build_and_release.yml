@@ -12,12 +12,14 @@ jobs:
         with:
           args: install llvm -y
       - name: Compile binaries
-        run: clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Win.exe
+        run: start cmd.exe /c clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Win.exe
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./EasyBonsai3-Win.exe
+          tag: latest
+          prerelease: false
   build-Linux:
     runs-on: ubuntu-latest
     steps:
@@ -33,6 +35,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./EasyBonsai3-Linux
+          tag: latest
+          prerelease: false
   build-JS:
     runs-on: ubuntu-latest
     steps:
@@ -52,3 +56,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./EasyBonsai3.js.zip
+          tag: latest
+          prerelease: false
