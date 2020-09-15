@@ -13,10 +13,10 @@ jobs:
       - name: Compile binaries
         run: clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Win.exe
       - name: Update Release
-          uses: johnwbyrd/update-release@v1
-          with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            files: ./EasyBonsai3-Win.exe
+        uses: johnwbyrd/update-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./EasyBonsai3-Win.exe
     build-Linux:
       runs-on: ubuntu-latest
       steps:
