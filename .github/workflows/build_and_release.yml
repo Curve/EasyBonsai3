@@ -44,8 +44,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'true'
-      - name: Run Emscripten once
-        run: em++
       - name: Compile binaries
         run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
       - name: Zip-Files
