@@ -17,31 +17,31 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./EasyBonsai3-Win.exe
-    build-Linux:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - name: Install Clang
-          run: sudo apt-get update -y && sudo apt-get install -yq clang
-        - name: Compile binaries
-          run: clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Linux
-        - name: Update Release
-          uses: johnwbyrd/update-release@v1
-          with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            files: ./EasyBonsai3-Linux
-    build-JS:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - name: Install Emscripten
-          run: sudo apt-get update -y && sudo apt-get install -yq emscripten
-        - name: Compile binaries
-          run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
-        - name: Zip-Files
-          run: zip EasyBonsai3.js.zip EasyBonsai3.js EasyBonsai3.wasm && rm EasyBonsai3.js EasyBonsai3.wasm
-        - name: Update Release
-          uses: johnwbyrd/update-release@v1
-          with:
-            token: ${{ secrets.GITHUB_TOKEN }}
-            files: ./EasyBonsai3.js.zip
+  build-Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Clang
+        run: sudo apt-get update -y && sudo apt-get install -yq clang
+      - name: Compile binaries
+        run: clang++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3-Linux
+      - name: Update Release
+        uses: johnwbyrd/update-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./EasyBonsai3-Linux
+  build-JS:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Emscripten
+        run: sudo apt-get update -y && sudo apt-get install -yq emscripten
+      - name: Compile binaries
+        run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
+      - name: Zip-Files
+        run: zip EasyBonsai3.js.zip EasyBonsai3.js EasyBonsai3.wasm && rm EasyBonsai3.js EasyBonsai3.wasm
+      - name: Update Release
+        uses: johnwbyrd/update-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./EasyBonsai3.js.zip
