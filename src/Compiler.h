@@ -306,35 +306,42 @@ namespace EasyBonsai
 							line = "jmp +" + std::to_string(args[0] - 1);
 					}
 				}
-				for (int i = index; code.size() > i; i++)
+				for (int i = 0; code.size() > i; i++)
 				{
 					auto& line = code[i];
 
-					if (bonsaiRegex.matches<JMP>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
-					{
-						auto args = bonsaiRegex.getArguments<JMP, 1, std::uint32_t>(line);
-						line = "jmp " + std::to_string(args[0] - 1);
-					}
-					else if (easyBonsaiRegex.matches<JE>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
-					{
-						auto args = easyBonsaiRegex.getArguments<JE, 1, std::uint32_t>(line);
-						line = "je " + std::to_string(args[0] - 1);
-					}
-					else if (easyBonsaiRegex.matches<JL>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
-					{
-						auto args = easyBonsaiRegex.getArguments<JL, 1, std::uint32_t>(line);
-						line = "jl " + std::to_string(args[0] - 1);
-					}
-					else if (easyBonsaiRegex.matches<JE>(line) && std::regex_match(line, std::regex(R"r(-?[0-9]+)r")))
-					{
-						auto args = easyBonsaiRegex.getArguments<JG, 1, std::uint32_t>(line);
-						line = "jg " + std::to_string(args[0] - 1);
-					}
-					else if (easyBonsaiRegex.matches<JMPR>(line))
+					if (i >= index && easyBonsaiRegex.matches<JMPR>(line))
 					{
 						auto args = easyBonsaiRegex.getArguments<JMPR, 1, std::int32_t>(line);
 						if (args[0] < 0 && (i - std::abs(args[0])) < index)
 							line = "jmp " + std::to_string(args[0] + 1);
+					}
+					else if (std::regex_search(line, std::regex(R"r([0-9]+)r")))
+					{
+						if (bonsaiRegex.matches<JMP>(line))
+						{
+							auto args = bonsaiRegex.getArguments<JMP, 1, std::uint32_t>(line);
+							if (args[0] >= index)
+								line = "jmp " + std::to_string(args[0] - 1);
+						}
+						else if (easyBonsaiRegex.matches<JE>(line))
+						{
+							auto args = easyBonsaiRegex.getArguments<JE, 1, std::uint32_t>(line);
+							if (args[0] >= index)
+								line = "je " + std::to_string(args[0] - 1);
+						}
+						else if (easyBonsaiRegex.matches<JL>(line))
+						{
+							auto args = easyBonsaiRegex.getArguments<JL, 1, std::uint32_t>(line);
+							if (args[0] >= index)
+								line = "jl " + std::to_string(args[0] - 1);
+						}
+						else if (easyBonsaiRegex.matches<JE>(line))
+						{
+							auto args = easyBonsaiRegex.getArguments<JG, 1, std::uint32_t>(line);
+							if (args[0] >= index)
+								line = "jg " + std::to_string(args[0] - 1);
+						}
 					}
 				}
 
@@ -686,6 +693,24 @@ namespace EasyBonsai
 		std::pair<bool, std::vector<std::string>> compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
 		{
 			code = _code;
+
+			{
+				std::vector<std::uint32_t> toDelete;
+				for (int i = 0; code.size() > i; i++)
+				{
+					auto& line = code[i];
+					if (!line || (line | startsWith(";")))
+					{
+						toDelete.push_back(i);
+					}
+				}
+				for (int it = 0; toDelete.size() > it; it++)
+				{
+					auto index = toDelete[it] - it;
+					code | removeAt(index);
+				}
+			}
+
 			knownAddresses.insert(knownAddresses.end(), usedRegisters.begin(), usedRegisters.end());
 
 			/*
