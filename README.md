@@ -56,6 +56,8 @@ Assembler-like compare instruction, that will compare two memory-cells.
 2: jl 20 ; will jump to line 20 if [0] < [1]
 3: jg 30 ; will jump to line 30 if [0] > [1]
 ```
+JE/JL/JG do not support relative jumping.
+
 ### Mov
 Allows you to copy the content of one memory-cell into another, also allows you to just set one memory-cell to zero.
 ```nasm
