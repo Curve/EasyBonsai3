@@ -26,13 +26,13 @@ EasyBonsai is a extension for [Bonsai](https://bonsai.pinyto.de/assembler/)  whi
 - Please compile with C++17 or above
 
 Windows/Linux:
-- Compile the project with an compiler of your choice
+- Compile the project with a compiler of your choice
 
 Web:
 - Compile with emscripten
   ```em++ main.cpp -D BONSAI_WEB -std=c++17 --bind```  
 # Features
-- [Realtive Jumps](#relative-jmps)
+- [Relative Jumps](#relative-jmps)
 - [Compare (cmp, je, jg, jl)](#compare)
 - [Mov](#mov)
 - [And, Or](#and--or)
