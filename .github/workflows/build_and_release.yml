@@ -49,7 +49,7 @@ jobs:
         with:
           submodules: 'true'
       - name: Compile binaries
-        run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
+        run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js -D BONSAI_WEB
       - name: Update Release 1
         uses: johnwbyrd/update-release@v1.0.0
         with:
