@@ -50,12 +50,17 @@ jobs:
           submodules: 'true'
       - name: Compile binaries
         run: em++ ./src/main.cpp -std=c++17 -O3 -o EasyBonsai3.js
-      - name: Update Release
+      - name: Update Release 1
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: 
-            - ./EasyBonsai3.js
-            - ./EasyBonsai3.wasm
+          files: ./EasyBonsai3.js
+          release: 'EasyBonsai3 Web'
+          prerelease: false
+      - name: Update Release 2
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./EasyBonsai3.wasm
           release: 'EasyBonsai3 Web'
           prerelease: false
