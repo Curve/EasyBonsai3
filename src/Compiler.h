@@ -360,13 +360,7 @@ namespace EasyBonsai
 					if (line | contains(cAddy.first))
 					{
 						auto replaced = (line | replace(cAddy.first, std::to_string(cAddy.second)));
-						auto easyBonsaiMatch = easyBonsaiRegex.getMatching(replaced);
-						auto bonsaiMatch = bonsaiRegex.getMatching(replaced);
-
-						if ((easyBonsaiMatch.has_value() && easyBonsaiMatch.value().isUseableAddy) || (bonsaiMatch.has_value() && bonsaiMatch.value().isUseableAddy))
-						{
-							line = replaced;
-						}
+						line = replaced;
 					}
 				}
 			}
