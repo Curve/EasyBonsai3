@@ -1,4 +1,3 @@
-
 <div align="center">
   <p>
     <h1>
@@ -22,6 +21,10 @@
 # Introduction
 EasyBonsai is a extension for [Bonsai](https://bonsai.pinyto.de/assembler/)  which adds more advanced instructions and is also compileable to Bonsai.
 # Install
+## Use the latest binaries
+From [here](https://github.com/Curve/EasyBonsai3/releases/tag/latest).
+
+## Or compile it yourself
 <b>Important: </b>
 - Please compile with C++17 or above
 
