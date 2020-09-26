@@ -260,7 +260,7 @@ namespace EasyBonsai
 					auto args = easyBonsaiRegex.getArguments<REG, 2>(line);
 					if (!(customAdresses | containsKey(args[0])))
 					{
-						customAdresses.insert({ args[0], std::stoi(args[1]) });
+						customAdresses.insert({ args[0] | trim(), std::stoi(args[1]) });
 					}
 					toDelete.push_back(i);
 				}
@@ -353,15 +353,53 @@ namespace EasyBonsai
 			Console::debug << "Detected Address-Macros: { " << (customAdresses | join(", ")) << " }" << Console::endl;
 #endif
 
+			std::vector<std::pair<std::uint32_t, std::string>> originals;
 			for (auto& cAddy : customAdresses)
 			{
-				for (auto& line : code)
+				for (int i = 0; code.size() > i; i++)
 				{
-					if (line | contains(cAddy.first))
+					auto& line = code[i];
+					auto splitted = line | split(" ");
+
+					std::string changedLine = "";
+					for (int j = 0; splitted.size() > j; j++)
 					{
-						auto replaced = (line | replace(cAddy.first, std::to_string(cAddy.second)));
-						line = replaced;
+						auto& split = splitted[j];
+						auto trimmed = split | trim();
+						auto replaced = (trimmed | replace(",", ""));
+
+						if (replaced == cAddy.first)
+						{
+							changedLine += ((trimmed | startsWith(",")) ? "," : "") + std::to_string(cAddy.second);
+						}
+						else
+						{
+							changedLine += replaced;
+						}
+
+						if (trimmed | endsWith(","))
+							changedLine += ",";
+
+						if (j != (splitted.size() - 1))
+							changedLine += " ";
 					}
+					if (!!changedLine)
+					{
+						originals.push_back({ i, line });
+						line = changedLine;
+					}
+				}
+			}
+
+			for (auto& original : originals)
+			{
+				auto& line = code[original.first];
+				auto easyBonsaiMatch = easyBonsaiRegex.getMatching(line);
+				auto bonsaiMatch = bonsaiRegex.getMatching(line);
+
+				if (!((easyBonsaiMatch.has_value() && easyBonsaiMatch.value().isUseableAddy) || (bonsaiMatch.has_value() && bonsaiMatch.value().isUseableAddy)))
+				{
+					line = original.second;
 				}
 			}
 		}
@@ -726,6 +764,17 @@ namespace EasyBonsai
 
 			handleGotoInstruction();
 			handleRJMPInstruction();
+
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (!bonsaiRegex.matchesAny(line))
+				{
+					errorStack.push_back(printfs("Unexpected instruction \"%s\" in line %u", line.c_str(), i));
+				}
+			}
+			if (errorStack.size() > 0)
+				return { false, errorStack };
 
 			return { true, code };
 		}
