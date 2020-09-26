@@ -13,7 +13,7 @@ using namespace beleg::extensions::containers;
 
 #ifdef BONSAI_WEB
 #include <emscripten/bind.h>
-std::tuple<bool, std::vector<std::string>, std::array<std::uint32_t, 3>> compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
+auto compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
 {
 	auto compiler = EasyBonsai::Compiler();
 	auto result = compiler.compile(_code, usedRegisters);
