@@ -39,6 +39,28 @@ auto compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegi
 	std::vector<std::uint32_t> registers = (result.first ? compiler.getNeededRegisters() : std::vector<std::uint32_t>{});
 	return Result{ result.first, result.second, registers };
 }
+auto run(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
+{
+	auto executor = EasyBonsai::Executor();
+	if (!executor.load(_code))
+		return Result{ false, executor.getErrorstack(), {} };
+
+	for (int i = 0; usedRegisters.size() > i; i++)
+	{
+		executor.setRegister(i, usedRegisters[i]);
+	}
+	
+	if (!executor.run())
+		return Result{ false, executor.getErrorstack(), {} };
+
+	std::vector<std::string> result;
+	for (auto& element : executor.getRegisters())
+	{
+		result.push_back("[$" + std::to_string(element.first) + "]: " + std::to_string(element.second));
+	}
+
+	return Result{ true, result, {} };
+}
 EMSCRIPTEN_BINDINGS(mygetcode) {
 	emscripten::class_<Result>("Result")
 		.function("getSuccess", &Result::getSuccess)
@@ -47,6 +69,7 @@ EMSCRIPTEN_BINDINGS(mygetcode) {
 	emscripten::register_vector<std::string>("StringList");
 	emscripten::register_vector <std::uint32_t>("UIntList");
 	emscripten::function("compile", &compile);
+	emscripten::function("run", &run);
 }
 #endif
 

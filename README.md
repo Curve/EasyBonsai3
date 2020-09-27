@@ -36,7 +36,7 @@ Web:
   ```em++ main.cpp -D BONSAI_WEB -std=c++17 --bind```  
 # Features
 - [Relative Jumps](#relative-jmps)
-- [Compare (cmp, je, jg, jl)](#compare)
+- [Compare (cmp, je, jne, jg, jl)](#compare)
 - [Mov](#mov)
 - [And, Or](#and--or)
 - [Goto (+ Labels)](#labels--goto)
@@ -56,10 +56,11 @@ Assembler-like compare instruction, that will compare two memory-cells.
 ```nasm
 0: cmp 0, 1
 1: je 10 ; will jump to line 10 if [0] == [1]
+1: jne 10 ; will jump to line 10 if [0] != [1]
 2: jl 20 ; will jump to line 20 if [0] < [1]
 3: jg 30 ; will jump to line 30 if [0] > [1]
 ```
-JE/JL/JG do not support relative jumping.
+JE/JNE/JL/JG do not support relative jumping.
 
 ### Mov
 Allows you to copy the content of one memory-cell into another, also allows you to just set one memory-cell to zero.
