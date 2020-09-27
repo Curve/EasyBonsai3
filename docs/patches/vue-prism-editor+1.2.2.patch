@@ -1,0 +1,13 @@
+diff --git a/node_modules/vue-prism-editor/dist/prismeditor.esm.js b/node_modules/vue-prism-editor/dist/prismeditor.esm.js
+index 62b2972..f85a5f9 100644
+--- a/node_modules/vue-prism-editor/dist/prismeditor.esm.js
++++ b/node_modules/vue-prism-editor/dist/prismeditor.esm.js
+@@ -507,7 +507,7 @@ var PrismEditor = /*#__PURE__*/Vue.extend({
+         attrs: {
+           "class": 'prism-editor__line-number token comment'
+         }
+-      }, "" + ++index);
++      }, "" + index++);
+     })]);
+     var textarea = h('textarea', {
+       ref: 'textarea',
