@@ -36,7 +36,8 @@ auto compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegi
 {
 	auto compiler = EasyBonsai::Compiler();
 	auto result = compiler.compile(_code, usedRegisters);
-	return Result{ result.first, result.second, compiler.getNeededRegisters() };
+	std::vector<std::uint32_t> registers = (result.first ? compiler.getNeededRegisters() : {});
+	return Result{ result.first, result.second, registers };
 }
 EMSCRIPTEN_BINDINGS(mygetcode) {
 	emscripten::class_<Result>("Result")
