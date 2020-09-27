@@ -22,7 +22,7 @@
 EasyBonsai is a extension for [Bonsai](https://bonsai.pinyto.de/assembler/)  which adds more advanced instructions and is also compileable to Bonsai.
 # Install
 ## Use the latest binaries
-From [here](https://github.com/Curve/EasyBonsai3/releases/tag/latest).
+From [here](https://github.com/Curve/EasyBonsai3/releases/tag/latest), or [try it on the web](https://curve.github.io/EasyBonsai3/)!
 
 ## Or compile it yourself
 <b>Important: </b>
