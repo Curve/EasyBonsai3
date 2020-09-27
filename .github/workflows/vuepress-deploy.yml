@@ -15,4 +15,4 @@ jobs:
       env:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         BUILD_DIR: docs/src/.vuepress/dist/
-        BUILD_SCRIPT: yarn && yarn build
+        BUILD_SCRIPT: cd docs && yarn && yarn build
