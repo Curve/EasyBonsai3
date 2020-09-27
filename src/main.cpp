@@ -13,14 +13,38 @@ using namespace beleg::extensions::containers;
 
 #ifdef BONSAI_WEB
 #include <emscripten/bind.h>
+struct Result
+{
+	bool success;
+	std::vector<std::string> result;
+	std::vector<std::uint32_t> registers;
+
+	bool getSuccess()
+	{
+		return success;
+	}
+	std::vector<std::string> getResult()
+	{
+		return result;
+	}
+	std::vector<std::uint32_t> getRegisters()
+	{
+		return registers;
+	}
+};
 auto compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
 {
 	auto compiler = EasyBonsai::Compiler();
 	auto result = compiler.compile(_code, usedRegisters);
-	return std::make_tuple(result.first, result.second, compiler.getNeededRegisters());
+	return Result{ result.first, result.second, compiler.getNeededRegisters() };
 }
 EMSCRIPTEN_BINDINGS(mygetcode) {
+	emscripten::class_<Result>("Result")
+		.function("getSuccess", &Result::getSuccess)
+		.function("getResult", &Result::getResult)
+		.function("getRegisters", &Result::getRegisters);
 	emscripten::register_vector<std::string>("StringList");
+	emscripten::register_vector <std::uint32_t>("UIntList");
 	emscripten::function("compile", &compile);
 }
 #endif

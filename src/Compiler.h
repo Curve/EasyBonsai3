@@ -778,7 +778,7 @@ namespace EasyBonsai
 
 			return { true, code };
 		}
-		std::array<std::uint32_t, 4> getNeededRegisters()
+		std::vector<std::uint32_t> getNeededRegisters()
 		{
 			return { (std::uint32_t)std::stoi(cmpRegisters[0]), (std::uint32_t)std::stoi(cmpRegisters[1]), (std::uint32_t)std::stoi(helpRegisters[0]), (std::uint32_t)std::stoi(helpRegisters[1]) };
 		}
