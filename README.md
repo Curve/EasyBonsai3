@@ -265,8 +265,8 @@ dec FacBuffer
 add NumBuffer, num
 jmp -5
 )
-(fun expo(num, exponent):
-mov ExpoBuffer, exponent
+(fun expo(num, expon):
+mov ExpoBuffer, expon
 dec ExpoBuffer
 mov ONumBuffer, num
 mov Num2Buffer, num
