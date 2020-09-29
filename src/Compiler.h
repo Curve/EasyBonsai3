@@ -472,7 +472,7 @@ namespace EasyBonsai
 
 						if (pushStack.size() != functionInfo.params.size())
 						{
-							errorStack.push_back(printfs("Too few arguments for function \"%s\" provided on function call \"%s\" in line %u", functionInfo.name.c_str(), line, i));
+							errorStack.push_back(printfs("Too few arguments for function \"%s\" provided on function call \"%s\" in line %u", functionInfo.name.c_str(), line.c_str(), i));
 							return;
 						}
 
