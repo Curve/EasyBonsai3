@@ -60,6 +60,13 @@ namespace EasyBonsai
 			{
 				const auto& line = code[ip++];
 
+#ifndef BONSAI_WEB
+				if (bonsaiRegex.matches<INT>(line))
+				{
+					Console::debug << "Interrupt called! Registers: " << (registers | join(",")) << Console::endl;
+					std::cin.get();
+				}
+#endif
 				if (bonsaiRegex.matches<TST>(line))
 				{
 					auto args = bonsaiRegex.getArguments<TST, 1, std::uint32_t>(line);

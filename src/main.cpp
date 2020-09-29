@@ -259,7 +259,7 @@ int main(int argc, char** cargs)
 	}
 
 	auto additionalRegisters = compiler.getNeededRegisters();
-	Console::info << "Additional defined registers: " << additionalRegisters[0] << ", " << additionalRegisters[1] << ", " << additionalRegisters[2] << ", " << additionalRegisters[3] << Console::endl;
+	Console::info << "Additional defined registers: " << (additionalRegisters | join(", ")) << Console::endl;
 	Console::info << "Compilation finished in " << (end_time - start_time) / std::chrono::milliseconds(1) << "ms!" << Console::endl;
 
 	std::ofstream output(args["output"]);

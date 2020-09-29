@@ -43,6 +43,8 @@ Web:
 - [Variable naming](#variable-naming)
 - [Addition and Subtraction](#add--sub)
 - [Increase/Decrease by Value](#inc--dec)
+- [Functions](#functions)
+- [Int](#int)
 # Examples
 ### Relative Jmps
 Allows you to jump relatively (This will skip Reg-Instructions aswell as Label-Definitions)
@@ -116,6 +118,82 @@ Allows you to increase a memory-cell by a given value
 0: inc 0, 10 ; will increase memory-cell [0] by 10
 0: dec 1, 5  ; will decrease memory-cell [1] by 5
 ```
+### Functions
+#### Declaration
+A function is delcared like this:
+```nasm
+(fun functionName(parameter1, parameter2):
+; code
+)
+```
+#### Calling & Parameters
+Parameters can be accessed by their name inside of the function body.
+- Example
+	```nasm
+	(fun functionName(parameter1, parameter2):
+	dec parameter1
+	add parameter1, parameter2
+	; code...
+	)
+	```
+Parameters are passed by **REFERENCE**. It is recommended to always have variables that you can save the function parameters into if you plan on modifying them.
+
+To call a function the `call` instruction is used.
+- Example
+	```nasm
+	(fun function():
+	; code...
+	)
+	
+	call function
+	; code...
+	```
+To pass parameters to the function call the `push` variable is used.
+- Example
+	```nasm
+	(fun function(param1, param2):
+	; code...
+	)
+	push a
+	psuh b
+	call function 
+	```
+
+#### Return
+To return a function the `ret` instruction is used.
+- Example
+	```nasm
+	(fun functionName(param1, param2):
+	inc param1
+	ret
+	)
+	```
+You can also return a value
+- Example
+	```nasm
+	(fun functionName(param1, param2):
+	inc param1
+	ret param1
+	)
+	```
+The return value will be saved inside of the **eax** register, you can access this register by simply using it like a variable.
+-	Example
+	```nasm
+	(fun functionName(param1, param2):
+	inc param1
+	ret param1
+	)
+	push a
+	push b
+	call functionName
+	mov someOtherVariable, eax ; eax will hold the return value!
+	```
+#### Tips
+It is recommended to use *relative jumps* inside of functions. Using Labels inside of the function will most likely not work as it will often lead to label-redefinition.
+### Int
+The `int` instruction is **only useable in the cli version of easybonsai**.
+What it does is pause the program (wait for the user to press the return key) and print all current registers.
+
 # Usage
 - Compile your code
 	```bash
@@ -159,3 +237,55 @@ Allows you to increase a memory-cell by a given value
 		[19:56:26] [EasyBonsai3] [$3]: 0
 		[19:56:26] [EasyBonsai3] [$4]: 1
 		```
+
+# Examples
+### Exponentiate Function
+A small example that demonstrates most of the EasyBonsai-Extensions to provide a function which can be used to exponentiate a given number with a given exponent.
+
+```nasm
+reg number, 0
+reg exponent, 1
+
+reg NumBuffer, 2
+reg FacBuffer, 3
+
+reg Result, 4
+
+reg Num2Buffer, 5
+reg ExpoBuffer, 6
+reg ONumBuffer, 7
+
+(fun multiply(num, fac):
+mov FacBuffer, fac
+mov NumBuffer, NULL
+tst FacBuffer
+jmp +2
+ret NumBuffer
+dec FacBuffer
+add NumBuffer, num
+jmp -5
+)
+(fun expo(num, exponent):
+mov ExpoBuffer, exponent
+dec ExpoBuffer
+mov ONumBuffer, num
+mov Num2Buffer, num
+tst ExpoBuffer
+jmp +2
+ret Num2Buffer
+push Num2Buffer
+push ONumBuffer
+call multiply
+mov Num2Buffer, eax
+dec ExpoBuffer
+jmp -8
+)
+
+push number
+push exponent
+call expo
+mov Result, eax
+hlt
+```
+
+This example code has 43 lines, after compilation it has a total of 263 lines.

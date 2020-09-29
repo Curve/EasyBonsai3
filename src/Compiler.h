@@ -150,11 +150,12 @@ namespace EasyBonsai
 			{ std::regex(R"r(^jmp (\d+)$)r"), 1, false},
 			{ std::regex(R"r(^inc (\d+)$)r"), 1},
 			{ std::regex(R"r(^dec (\d+)$)r"), 1},
-			{ std::regex(R"r(^hlt$)r"), 0}
+			{ std::regex(R"r(^hlt$)r"), 0, false},
+			{ std::regex(R"r(^int$)r"), 0, false }
 		});
 	inline internal::CommandCollection easyBonsaiRegex(
 		{
-			{ std::regex(R"r(^(.*):$)r"), 1, false },
+			{ std::regex(R"r(^([a-zA-Z0-9-_]+):$)r"), 1, false },
 			{ std::regex(R"r(^jg (.+)$)r"), 1, false },
 			{ std::regex(R"r(^goto (.+)$)r"), 1, false },
 			{ std::regex(R"r(^(.+):\ .*$)r"), 1, false },
@@ -172,122 +173,86 @@ namespace EasyBonsai
 			{ std::regex(R"r(^sub (\d+),\ *(\d+)\ *$)r"), 2 },
 			{ std::regex(R"r(^inc (\d+),\ *(\d+)\ *$)r"), 2, true, {2} },
 			{ std::regex(R"r(^dec (\d+),\ *(\d+)\ *$)r"), 2, true, {2} },
-			{ std::regex(R"r(^jne (.+)$)r"), 1, false }
+			{ std::regex(R"r(^jne (.+)$)r"), 1, false },
+			{ std::regex(R"r(^ret$)r"), 0, false },
+			{ std::regex(R"r(^ret (.+)$)r"), 1 },
+			{ std::regex(R"r(^\(fun (.+)\(([a-zA-Z0-9, ]*)\):\ *$)r"), 2, false },
+			{ std::regex(R"r(^push (.+)$)r"), 2 },
+			{ std::regex(R"r(^call (.+)$)r"), 1, false }
 		});
 
-	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, ADD, SUB, VINC, VDEC, JNE, TST = 0, JMP, INC, DEC, HLT };
+	enum Instruction { LABELN, JG, GOTO, LABEL, JMPTO, JMPR, JE, JL, MOVN, REG, OR, CMP, AND, MOV, ADD, SUB, VINC, VDEC, JNE, RET, RETV, FUNCDEF, PUSH, CALL, TST = 0, JMP, INC, DEC, HLT, INT };
 
 	class Compiler
 	{
+		struct Function
+		{
+			std::string name;
+			std::vector<std::string> code;
+			std::vector<std::string> params;
+		};
 	private:
 		std::vector<std::string> code;
 
 		std::vector<std::string> errorStack;
 
+		std::string returnRegister;
 		std::string cmpRegisters[2];
 		std::string helpRegisters[2];
 		std::vector<std::uint32_t> knownAddresses;
 		std::map<std::string, std::uint32_t> definedLabels;
+		std::map<std::string, Function> functionDefintions;
 		std::map<std::string, std::uint32_t> customAdresses;
 	private:
-		template <Instruction instruction, std::size_t count>
-		static std::pair<bool, std::array<std::string, count>> getInstruction(const std::string& line)
+		bool usesVariable(std::string& line, const std::string& variableName)
 		{
-			if (easyBonsaiRegex.matches<instruction>(line))
+			std::string rtn = "";
+			auto splitted = line | split(" ");
+			for (int j = 0; splitted.size() > j; j++)
 			{
-				return { true, easyBonsaiRegex.getArguments<instruction, count>(line) };
-			}
+				auto& split = splitted[j];
+				auto trimmed = split | trim();
+				auto replaced = (trimmed | replace(",", ""));
 
-			return { false, {} };
+				if (replaced == variableName)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
-		bool isCodeValid()
+		std::string formatAndReplace(std::string& line, const std::string& variableName, const std::string& variableValue)
 		{
-			for (int i = 0; code.size() > i; i++)
+			std::string rtn = "";
+			auto splitted = line | split(" ");
+			for (int j = 0; splitted.size() > j; j++)
 			{
-				auto& line = code[i];
+				auto& split = splitted[j];
+				auto trimmed = split | trim();
+				auto replaced = (trimmed | replace(",", ""));
 
-				if (!(easyBonsaiRegex.matchesAny(line) || bonsaiRegex.matchesAny(line)))
+				if (replaced == variableName)
 				{
-					errorStack.push_back(printfs("Unkown instruction \"%s\" in line %u", line.c_str(), i));
+					rtn += ((trimmed | startsWith(",")) ? "," : "") + variableValue;
 				}
+				else
+				{
+					rtn += replaced;
+				}
+
+				if (trimmed | endsWith(","))
+					rtn += ",";
+
+				if (j != (splitted.size() - 1))
+					rtn += " ";
 			}
-			return errorStack.size() == 0;
+			return rtn;
 		}
-		void detectUsedAddresses()
+		void deleteLines(std::vector<std::size_t> lines)
 		{
-			for (auto& line : code)
+			for (int it = 0; lines.size() > it; it++)
 			{
-				auto args = bonsaiRegex.getUsedAddys<std::uint32_t>(line);
-				auto args2 = easyBonsaiRegex.getUsedAddys<std::uint32_t>(line);
-				args.insert(args.end(), args2.begin(), args2.end());
-
-				if (args.size() > 0)
-				{
-					for (auto addy : args)
-					{
-						if (!(knownAddresses | contains(addy)))
-						{
-							knownAddresses.push_back(addy);
-						}
-					}
-				}
-			}
-#ifndef BONSAI_WEB
-			Console::debug << "Detected Used-Addresses: { " << (knownAddresses | join(", ")) << " }" << Console::endl;
-#endif
-			std::uint32_t maxRegister = 0;
-			if (knownAddresses.size() > 0)
-				maxRegister = *std::max_element(knownAddresses.begin(), knownAddresses.end());
-
-			helpRegisters[0] = std::to_string(maxRegister + 1);
-			helpRegisters[1] = std::to_string(maxRegister + 2);
-			cmpRegisters[0] = std::to_string(maxRegister + 3);
-			cmpRegisters[1] = std::to_string(maxRegister + 4);
-
-#ifndef BONSAI_WEB
-			Console::debug << "Setting Help-Registers to [$0: " << helpRegisters[0] << "] and [$2: " << helpRegisters[1] << "]" << Console::endl;
-			Console::debug << "Setting Compare-Registers to [$2: " << cmpRegisters[0] << "] and [$3: " << cmpRegisters[1] << "]" << Console::endl;
-#endif
-		}
-		void detectMacrosAndLabels()
-		{
-			std::vector<std::size_t> toDelete;
-
-			for (int i = 0; code.size() > i; i++)
-			{
-				auto& line = code[i];
-				if (easyBonsaiRegex.matches<REG>(line))
-				{
-					auto args = easyBonsaiRegex.getArguments<REG, 2>(line);
-					if (!(customAdresses | containsKey(args[0])))
-					{
-						customAdresses.insert({ args[0] | trim(), std::stoi(args[1]) });
-					}
-					toDelete.push_back(i);
-				}
-				else if (easyBonsaiRegex.matches<LABELN>(line))
-				{
-					auto args = easyBonsaiRegex.getArguments<LABELN, 1>(line);
-					if (!(definedLabels | containsKey(args[0])))
-					{
-						definedLabels.insert({ args[0], i + 1 });
-					}
-					toDelete.push_back(i);
-				}
-				else if (easyBonsaiRegex.matches<LABEL>(line))
-				{
-					auto args = easyBonsaiRegex.getArguments<LABEL, 1>(line);
-					if (!(definedLabels | containsKey(args[0])))
-					{
-						line = line.substr(args[0].size() + 2);
-						definedLabels.insert({ args[0], i });
-					}
-				}
-			}
-
-			for (int it = 0; toDelete.size() > it; it++)
-			{
-				auto index = toDelete[it] - it;
+				auto index = lines[it] - it;
 
 				for (const auto& label : definedLabels)
 				{
@@ -351,9 +316,264 @@ namespace EasyBonsai
 						}
 					}
 				}
-
 				code | removeAt(index);
 			}
+		}
+		bool isCodeValid()
+		{
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+
+				if (!(easyBonsaiRegex.matchesAny(line) || bonsaiRegex.matchesAny(line)))
+				{
+					errorStack.push_back(printfs("Unkown instruction \"%s\" in line %u", line.c_str(), i));
+				}
+			}
+			return errorStack.size() == 0;
+		}
+		void detectUsedAddresses()
+		{
+			for (auto line : code)
+			{
+				if (usesVariable(line, "eax"))
+				{
+					line = formatAndReplace(line, "eax", "0");
+				}
+
+				auto args = bonsaiRegex.getUsedAddys<std::uint32_t>(line);
+				auto args2 = easyBonsaiRegex.getUsedAddys<std::uint32_t>(line);
+				args.insert(args.end(), args2.begin(), args2.end());
+
+				if (args.size() > 0)
+				{
+					for (auto addy : args)
+					{
+						if (!(knownAddresses | contains(addy)))
+						{
+							knownAddresses.push_back(addy);
+						}
+					}
+				}
+			}
+#ifndef BONSAI_WEB
+			Console::debug << "Detected Used-Addresses: { " << (knownAddresses | join(", ")) << " }" << Console::endl;
+#endif
+			std::uint32_t maxRegister = 0;
+			if (knownAddresses.size() > 0)
+				maxRegister = *std::max_element(knownAddresses.begin(), knownAddresses.end());
+
+			helpRegisters[0] = std::to_string(maxRegister + 2);
+			helpRegisters[1] = std::to_string(maxRegister + 3);
+			cmpRegisters[0] = std::to_string(maxRegister + 4);
+			cmpRegisters[1] = std::to_string(maxRegister + 5);
+
+			returnRegister = std::to_string(maxRegister + 1);
+			customAdresses.insert({ "eax", maxRegister + 1 });
+
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (usesVariable(line, "eax"))
+				{
+					line = formatAndReplace(line, "eax", returnRegister);
+				}
+			}
+
+#ifndef BONSAI_WEB
+			Console::debug << "Setting Eax-Register to [" << returnRegister << "]" << Console::endl;
+			Console::debug << "Setting Help-Registers to [" << helpRegisters[0] << ", " << helpRegisters[1] << "]" << Console::endl;
+			Console::debug << "Setting Compare-Registers to [" << cmpRegisters[0] << ", " << cmpRegisters[1] << "]" << Console::endl;
+#endif
+		}
+		void handleFunctions()
+		{
+			std::vector<std::size_t> toDelete;
+			bool inFunction = false;
+			Function currentFunction;
+
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (easyBonsaiRegex.matches<FUNCDEF>(line))
+				{
+					if (inFunction)
+					{
+						errorStack.push_back(printfs("Trying to define function inside of function in line %u", i));
+						return;
+					}
+
+					auto args = easyBonsaiRegex.getArguments<FUNCDEF, 2>(line);
+					currentFunction.name = args[0];
+
+					auto splitted = args[1] | split(",");
+					for (auto& split : splitted)
+					{
+						if (customAdresses | containsKey(split | trim()))
+						{
+							errorStack.push_back(printfs("Function Parameter \"%s\" defined in line %u conflicts with variable of the same name", split.c_str(), i));
+							return;
+						}
+						currentFunction.params.push_back(split | trim());
+					}
+
+					inFunction = true;
+					toDelete.push_back(i);
+				}
+				else if (inFunction)
+				{
+					if ((line | trim()) == ")")
+					{
+						inFunction = false;
+						toDelete.push_back(i);
+						functionDefintions.insert({ currentFunction.name | trim(), currentFunction });
+						currentFunction.code.clear();
+						currentFunction.params.clear();
+					}
+					else
+					{
+						toDelete.push_back(i);
+						currentFunction.code.push_back(line);
+					}
+				}
+			}
+
+			deleteLines(toDelete);
+			toDelete.clear();
+
+			bool wasPreviousPush = false;
+			std::vector<std::string> pushStack;
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+
+				if (easyBonsaiRegex.matches<PUSH>(line))
+				{
+					wasPreviousPush = true;
+					auto args = easyBonsaiRegex.getArguments<PUSH, 1>(line);
+					pushStack.push_back(args[0]);
+					toDelete.push_back(i);
+				}
+				else if (easyBonsaiRegex.matches<CALL>(line))
+				{
+					wasPreviousPush = false;
+					auto args = easyBonsaiRegex.getArguments<CALL, 1>(line);
+					if (!(functionDefintions | containsKey(args[0] | trim())))
+					{
+						errorStack.push_back(printfs("Tried to call non existant function \"%s\" in line %u", args[0].c_str(), i));
+					}
+					else
+					{
+						auto functionStart = code.size();
+						auto continueExec = std::to_string(i + 1);
+						auto functionInfo = functionDefintions.at(args[0] | trim());
+
+						line = "jmp " + std::to_string(functionStart);
+
+						if (pushStack.size() != functionInfo.params.size())
+						{
+							errorStack.push_back(printfs("Too few arguments for function \"%s\" provided on function call \"%s\" in line %u", functionInfo.name.c_str(), line, i));
+							return;
+						}
+
+						std::vector<std::string> newCode = functionInfo.code;
+						for (int k = 0; newCode.size() > k; k++)
+						{
+							auto& newLine = newCode[k];
+							for (int j = 0; functionInfo.params.size() > j; j++)
+							{
+								auto param = functionInfo.params[j];
+								auto paramValue = pushStack[j];
+
+								newLine = formatAndReplace(newLine, param, paramValue);
+							}
+
+							if (easyBonsaiRegex.matches<RET>(newLine | trim()))
+							{
+								newLine = "jmp " + continueExec;
+							}
+							else if (easyBonsaiRegex.matches<RETV>(newLine | trim()))
+							{
+								auto retArg = easyBonsaiRegex.getArguments<RETV, 1>(newLine);
+								std::vector<std::string> returnFunc =
+								{
+									"mov eax, " + retArg[0],
+									"jmp " + continueExec
+								};
+								newLine = "jmp " + std::to_string(code.size() + newCode.size());
+								newCode.insert(newCode.end(), returnFunc.begin(), returnFunc.end());
+							}
+						}
+						code.insert(code.end(), newCode.begin(), newCode.end());
+						pushStack.clear();
+					}
+				}
+				else
+				{
+					if (wasPreviousPush)
+					{
+						errorStack.push_back(printfs("Expected Call but got \"%s\" in line %u", line.c_str(), i));
+						return;
+					}
+					wasPreviousPush = false;
+				}
+			}
+
+			deleteLines(toDelete);
+		}
+		void detectMacrosAndLabels()
+		{
+			std::vector<std::size_t> toDelete;
+
+			for (int i = 0; code.size() > i; i++)
+			{
+				auto& line = code[i];
+				if (easyBonsaiRegex.matches<REG>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<REG, 2>(line);
+					if (!(customAdresses | containsKey(args[0])))
+					{
+						customAdresses.insert({ args[0] | trim(), std::stoi(args[1]) });
+					}
+					else
+					{
+						errorStack.push_back(printfs("Trying to register variable \"%s\" in line %u but it's already defined", args[0].c_str(), i));
+						return;
+					}
+					toDelete.push_back(i);
+				}
+				else if (easyBonsaiRegex.matches<LABELN>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<LABELN, 1>(line);
+					if (!(definedLabels | containsKey(args[0])))
+					{
+						definedLabels.insert({ args[0], i + 1 });
+					}
+					else
+					{
+						errorStack.push_back(printfs("Trying to register label \"%s\" in line %u but it's already defined", args[0].c_str(), i));
+						return;
+					}
+					toDelete.push_back(i);
+				}
+				else if (easyBonsaiRegex.matches<LABEL>(line))
+				{
+					auto args = easyBonsaiRegex.getArguments<LABEL, 1>(line);
+					if (!(definedLabels | containsKey(args[0])))
+					{
+						line = line.substr(args[0].size() + 2);
+						definedLabels.insert({ args[0], i });
+					}
+					else
+					{
+						errorStack.push_back(printfs("Trying to register label \"%s\" in line %u but it's already defined", args[0].c_str(), i));
+						return;
+					}
+				}
+			}
+			deleteLines(toDelete);
+
+			handleFunctions();
 
 #ifndef BONSAI_WEB
 			Console::debug << "Detected Labels: { " << (definedLabels | join(", ")) << " }" << Console::endl;
@@ -366,46 +586,28 @@ namespace EasyBonsai
 				for (int i = 0; code.size() > i; i++)
 				{
 					auto& line = code[i];
-					auto splitted = line | split(" ");
-
-					std::string changedLine = "";
-					for (int j = 0; splitted.size() > j; j++)
-					{
-						auto& split = splitted[j];
-						auto trimmed = split | trim();
-						auto replaced = (trimmed | replace(",", ""));
-
-						if (replaced == cAddy.first)
-						{
-							changedLine += ((trimmed | startsWith(",")) ? "," : "") + std::to_string(cAddy.second);
-						}
-						else
-						{
-							changedLine += replaced;
-						}
-
-						if (trimmed | endsWith(","))
-							changedLine += ",";
-
-						if (j != (splitted.size() - 1))
-							changedLine += " ";
-					}
-					if (!!changedLine)
+					if (usesVariable(line, cAddy.first))
 					{
 						originals.push_back({ i, line });
-						line = changedLine;
+						line = formatAndReplace(line, cAddy.first, std::to_string(cAddy.second));
 					}
 				}
 			}
 
 			for (auto& original : originals)
 			{
-				auto& line = code[original.first];
+				auto line = code[original.first];
+				if (usesVariable(line, "eax"))
+				{
+					line = formatAndReplace(line, "eax", "0");
+				}
+
 				auto easyBonsaiMatch = easyBonsaiRegex.getMatching(line);
 				auto bonsaiMatch = bonsaiRegex.getMatching(line);
 
 				if (!((easyBonsaiMatch.has_value() && easyBonsaiMatch.value().isUseableAddy) || (bonsaiMatch.has_value() && bonsaiMatch.value().isUseableAddy)))
 				{
+					errorStack.push_back(printfs("Variable is used with incompatible instruction \"%s\" in line %u - Original: %s", original.second.c_str(), original.first, line.c_str()));
 					line = original.second;
 				}
 			}
@@ -772,11 +974,10 @@ namespace EasyBonsai
 			*/
 
 			detectMacrosAndLabels();
+			detectUsedAddresses();
 
 			if (!isCodeValid())
 				return { false, errorStack };
-
-			detectUsedAddresses();
 
 			handleMathInstruction();
 			handleCmpInstruction();
@@ -802,7 +1003,7 @@ namespace EasyBonsai
 		}
 		std::vector<std::uint32_t> getNeededRegisters()
 		{
-			return { (std::uint32_t)std::stoi(cmpRegisters[0]), (std::uint32_t)std::stoi(cmpRegisters[1]), (std::uint32_t)std::stoi(helpRegisters[0]), (std::uint32_t)std::stoi(helpRegisters[1]) };
+			return { (std::uint32_t)std::stoi(cmpRegisters[0]), (std::uint32_t)std::stoi(cmpRegisters[1]), (std::uint32_t)std::stoi(helpRegisters[0]), (std::uint32_t)std::stoi(helpRegisters[1]), (std::uint32_t)std::stoi(returnRegister) };
 		}
 	};
 }
