@@ -95,9 +95,13 @@ import "prismjs/themes/prism-tomorrow.css"; // import syntax highlighting styles
 languages.bonsai = {
   comment: /^^#!.+|;(?:\[(=*)\[[\s\S]*?\]\1\]|.*)/m,
   number: /\b0x[a-f\d]+\.?[a-f\d]*(?:p[+-]?\d+)?\b|\b\d+(?:\.\B|\.?\d*(?:e[+-]?\d+)?\b)|\B\.\d+(?:e[+-]?\d+)?\b/i,
-  keyword: /\b(?:mov|reg|jmp|goto|inc|dec|hlt|add|sub|tst|cmp|je|jg|jl|jne|and|or)\b/,
+  keyword: /\b(?:mov|reg|jmp|goto|inc|dec|hlt|add|sub|tst|cmp|je|jg|jl|jne|and|or|ret|push|call|int)\b/,
   symbol: /\b(?:[A-Z]+)\b/,
-  function: [/(?!\d)\w+(?=\s*(?:[:]))/, /(?!\d)(?:[.])\w+(?=\s*)/],
+  function: [
+    /(?!\d)\w+(?=\s*(?:[:]))/,
+    /(?!\d)(?:[.])\w+(?=\s*)/,
+    /\(fun .+\(([a-zA-Z0-9, ]+)\):\ */,
+  ],
   punctuation: /[\[\](){},;]|\.+|:+/,
 };
 
