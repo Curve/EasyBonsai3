@@ -155,7 +155,7 @@ To pass parameters to the function call the `push` variable is used.
 	; code...
 	)
 	push a
-	psuh b
+	push b
 	call function 
 	```
 
