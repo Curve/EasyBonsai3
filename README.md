@@ -34,31 +34,26 @@ Windows/Linux:
 Web:
 - Compile with emscripten
   ```em++ main.cpp -D BONSAI_WEB -std=c++17 --bind```  
-# Features
+# Index
 - [Introduction](#introduction)
 - [Install](#install)
 	- [Use the latest binaries](#use-the-latest-binaries)
 	- [Or compile it yourself](#or-compile-it-yourself)
+- [Index](#index)
 - [Features](#features)
-- [Examples](#examples)
-		- [Relative Jmps](#relative-jmps)
-		- [Compare](#compare)
-		- [Mov](#mov)
-		- [And / Or](#and--or)
-		- [Labels / Goto](#labels--goto)
-		- [Variable Naming](#variable-naming)
-		- [Add / Sub](#add--sub)
-		- [Inc / Dec](#inc--dec)
-		- [Functions](#functions)
-			- [Declaration](#declaration)
-			- [Calling & Parameters](#calling--parameters)
-			- [Return](#return)
-			- [Tips](#tips)
-		- [Int](#int)
+	- [Relative Jmps](#relative-jmps)
+	- [Compare](#compare)
+	- [Mov](#mov)
+	- [And / Or](#and--or)
+	- [Labels / Goto](#labels--goto)
+	- [Variable Naming](#variable-naming)
+	- [Add / Sub](#add--sub)
+	- [Inc / Dec](#inc--dec)
+	- [Functions](#functions)
 - [Usage](#usage)
-- [Examples](#examples-1)
-		- [Exponentiate Function](#exponentiate-function)
-# Examples
+- [Examples](#examples)
+	- [Exponentiate Function](#exponentiate-function)
+# Features
 ### Relative Jmps
 Allows you to jump relatively (This will skip Reg-Instructions aswell as Label-Definitions)
 ```nasm
