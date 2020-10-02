@@ -106,10 +106,10 @@ Allows you to give memory-cells names.
 ```nasm
 0: reg TEST, 0
 1: reg TEST2 ; Since we didn't provide a memory cell that should be used the compiler will automatically assign one to it.
-1: inc TEST ; will increase memory-cell [0]
-2: dec TEST ; will decrease memory-cell [0]
-3: jmp TEST ; this will **not** work, because jmp instructions cant access memory-cells 
-3: hlt
+2: inc TEST ; will increase memory-cell [0]
+3: dec TEST ; will decrease memory-cell [0]
+4: jmp TEST ; this will **not** work, because jmp instructions cant access memory-cells 
+5: hlt
 ```
 ### Add / Sub
 Allows you to perform simple addition and subtraction with memory-cells.
