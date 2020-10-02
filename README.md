@@ -35,16 +35,29 @@ Web:
 - Compile with emscripten
   ```em++ main.cpp -D BONSAI_WEB -std=c++17 --bind```  
 # Features
-- [Relative Jumps](#relative-jmps)
-- [Compare (cmp, je, jne, jg, jl)](#compare)
-- [Mov](#mov)
-- [And, Or](#and--or)
-- [Goto (+ Labels)](#labels--goto)
-- [Variable naming](#variable-naming)
-- [Addition and Subtraction](#add--sub)
-- [Increase/Decrease by Value](#inc--dec)
-- [Functions](#functions)
-- [Int](#int)
+- [Introduction](#introduction)
+- [Install](#install)
+	- [Use the latest binaries](#use-the-latest-binaries)
+	- [Or compile it yourself](#or-compile-it-yourself)
+- [Features](#features)
+- [Examples](#examples)
+		- [Relative Jmps](#relative-jmps)
+		- [Compare](#compare)
+		- [Mov](#mov)
+		- [And / Or](#and--or)
+		- [Labels / Goto](#labels--goto)
+		- [Variable Naming](#variable-naming)
+		- [Add / Sub](#add--sub)
+		- [Inc / Dec](#inc--dec)
+		- [Functions](#functions)
+			- [Declaration](#declaration)
+			- [Calling & Parameters](#calling--parameters)
+			- [Return](#return)
+			- [Tips](#tips)
+		- [Int](#int)
+- [Usage](#usage)
+- [Examples](#examples-1)
+		- [Exponentiate Function](#exponentiate-function)
 # Examples
 ### Relative Jmps
 Allows you to jump relatively (This will skip Reg-Instructions aswell as Label-Definitions)
@@ -97,6 +110,7 @@ Simple labels.
 Allows you to give memory-cells names.
 ```nasm
 0: reg TEST, 0
+1: reg TEST2 ; Since we didn't provide a memory cell that should be used the compiler will automatically assign one to it.
 1: inc TEST ; will increase memory-cell [0]
 2: dec TEST ; will decrease memory-cell [0]
 3: jmp TEST ; this will **not** work, because jmp instructions cant access memory-cells 

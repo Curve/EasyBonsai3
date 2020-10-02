@@ -37,57 +37,59 @@ auto compile(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegi
 	auto compiler = EasyBonsai::Compiler();
 	auto result = compiler.compile(_code, usedRegisters);
 	std::vector<std::uint32_t> registers = (result.first ? compiler.getNeededRegisters() : std::vector<std::uint32_t>{});
-	return Result{ result.first, result.second, registers };
+	return Result{result.first, result.second, registers};
 }
 auto run(std::vector<std::string> _code, std::vector<std::uint32_t> usedRegisters = {})
 {
 	auto executor = EasyBonsai::Executor();
 	if (!executor.load(_code))
-		return Result{ false, executor.getErrorstack(), {} };
+		return Result{false, executor.getErrorstack(), {}};
 
 	for (int i = 0; usedRegisters.size() > i; i++)
 	{
 		executor.setRegister(i, usedRegisters[i]);
 	}
-	
+
 	if (!executor.run())
-		return Result{ false, executor.getErrorstack(), {} };
+		return Result{false, executor.getErrorstack(), {}};
 
 	std::vector<std::string> result;
-	for (auto& element : executor.getRegisters())
+	for (auto &element : executor.getRegisters())
 	{
 		result.push_back("[$" + std::to_string(element.first) + "]: " + std::to_string(element.second));
 	}
 
-	return Result{ true, result, {} };
+	return Result{true, result, {}};
 }
-EMSCRIPTEN_BINDINGS(mygetcode) {
+EMSCRIPTEN_BINDINGS(mygetcode)
+{
 	emscripten::class_<Result>("Result")
 		.function("getSuccess", &Result::getSuccess)
 		.function("getResult", &Result::getResult)
 		.function("getRegisters", &Result::getRegisters);
 	emscripten::register_vector<std::string>("StringList");
-	emscripten::register_vector <std::uint32_t>("UIntList");
+	emscripten::register_vector<std::uint32_t>("UIntList");
 	emscripten::function("compile", &compile);
 	emscripten::function("run", &run);
 }
 #endif
 
 #ifndef BONSAI_WEB
-inline std::vector<std::string> readFileToVector(const std::string& filename)
+inline std::vector<std::string> readFileToVector(const std::string &filename)
 {
 	std::vector<std::string> result;
 	std::ifstream inputFile(filename);
 	std::string currentLine;
 	while (std::getline(inputFile, currentLine))
 	{
-		if (currentLine.length() >= 1 && currentLine.substr(0, 1) == ";") continue;
+		if (currentLine.length() >= 1 && currentLine.substr(0, 1) == ";")
+			continue;
 		result.push_back(currentLine);
 	}
 	return result;
 }
 
-int main(int argc, char** cargs)
+int main(int argc, char **cargs)
 {
 	std::map<std::string, std::string> args;
 
@@ -104,11 +106,11 @@ int main(int argc, char** cargs)
 		{
 			if (argc > (i + 1) && !(cargs[i + 1] | startsWith("--")))
 			{
-				args.insert({ currentArg.substr(2), cargs[i + 1] });
+				args.insert({currentArg.substr(2), cargs[i + 1]});
 			}
 			else
 			{
-				args.insert({ currentArg.substr(2), "" });
+				args.insert({currentArg.substr(2), ""});
 			}
 		}
 	}
@@ -118,7 +120,7 @@ int main(int argc, char** cargs)
 		EasyBonsai::Executor executor;
 		if (!std::filesystem::exists(args["run"]))
 		{
-			Console::error << "Sepcified file not found" << Console::endl;;
+			Console::error << "Sepcified file not found" << Console::endl;
 			return 1;
 		}
 
@@ -193,12 +195,12 @@ int main(int argc, char** cargs)
 	}
 	else if (!(args | containsKey("input")))
 	{
-		Console::error << "No input specified" << Console::endl;;
+		Console::error << "No input specified" << Console::endl;
 		return 1;
 	}
 	else if (!std::filesystem::exists(args["input"]))
 	{
-		Console::error << "No input specified" << Console::endl;;
+		Console::error << "No input specified" << Console::endl;
 		return 1;
 	}
 	if (!(args | containsKey("output")))
@@ -221,7 +223,7 @@ int main(int argc, char** cargs)
 		{
 			std::vector<std::string> _splitted = (vars | split(","));
 			std::vector<std::uint32_t> splitted;
-			for (auto& item : _splitted)
+			for (auto &item : _splitted)
 			{
 				if (std::regex_match(item, std::regex(R"r([0-9]+)r")))
 				{
