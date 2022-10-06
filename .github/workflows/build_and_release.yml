@@ -9,7 +9,7 @@ jobs:
   build-Windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
         with:
           submodules: 'true'
       - name: Choco Install llvm  
@@ -28,7 +28,7 @@ jobs:
   build-Linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
         with:
             submodules: 'true'
       - name: Install Clang
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: mymindstorm/setup-emsdk@v8
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.1.0
         with:
           submodules: 'true'
       - name: Compile binaries
